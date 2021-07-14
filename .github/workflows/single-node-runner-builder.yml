@@ -3,7 +3,7 @@ name: Single node runners build & publish
 on:
   push:
     branches:
-      - "ONET-53"
+      - "main"
 
 jobs:
   docker:
