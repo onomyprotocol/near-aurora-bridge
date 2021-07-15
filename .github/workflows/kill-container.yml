@@ -1,0 +1,36 @@
+name: Kill container on close Pull Request
+
+# only trigger on pull request closed events
+on:
+  pull_request:
+    types: [closed]
+    branches: [test]
+
+jobs:
+  merge_job:
+    # this job will only run if the PR has been merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: start master-cosmos-eth-node
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+          command: docker rm -f $(docker ps -a -q) && docker rmi -f $(docker images -q)
+          host: ${{ secrets.MASTER_NODE_HOST }}
+          username: root
+          password: ""
+          privateKey: ${{ secrets.PRIVATE_KEY}}
+
+  close_job:
+    # this job will only run if the PR has been closed without being merged
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: start master-cosmos-eth-node
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+          command: docker rm -f $(docker ps -a -q) && docker rmi -f $(docker images -q)
+          host: ${{ secrets.MASTER_NODE_HOST }}
+          username: root
+          password: ""
+          privateKey: ${{ secrets.PRIVATE_KEY}}
