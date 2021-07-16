@@ -28,6 +28,12 @@ Gravity is currently can transfer ERC20 assets originating on Cosmos or Ethereum
 
 [relaying semantics](/docs/design/relaying-semantics.md)
 
+**Components diagram**
+
+<p align="left">
+  <img src="https://user-images.githubusercontent.com/6096171/123229727-3ceea380-d4df-11eb-818c-3c996d9199aa.png?raw=true"/>
+</p>
+
 ### Specs
 
 [slashing-spec](/spec/slashing-spec.md)
