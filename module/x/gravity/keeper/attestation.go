@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -39,6 +40,7 @@ func (k Keeper) Attest(
 	if att == nil {
 		att = &types.Attestation{
 			Observed: false,
+			Votes:    []string{},
 			Height:   uint64(ctx.BlockHeight()),
 			Claim:    anyClaim,
 		}
@@ -161,14 +163,14 @@ func (k Keeper) GetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []b
 	return &att
 }
 
-// DeleteAttestation deletes an attestation given an event nonce and claim
+// DeleteAttestation deletes the given attestation
 func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
 	claim, err := k.UnpackAttestationClaim(&att)
 	if err != nil {
 		panic("Bad Attestation in DeleteAttestation")
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetAttestationKeyWithHash(claim.GetEventNonce(), claim.ClaimHash()))
+	store.Delete(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()))
 }
 
 // GetAttestationMapping returns a mapping of eventnonce -> attestations at that nonce
@@ -198,13 +200,55 @@ func (k Keeper) IterateAttestaions(ctx sdk.Context, cb func([]byte, types.Attest
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		att := types.Attestation{}
+		att := types.Attestation{
+			Observed: false,
+			Votes:    []string{},
+			Height:   0,
+			Claim: &codectypes.Any{
+				TypeUrl:              "",
+				Value:                []byte{},
+				XXX_NoUnkeyedLiteral: struct{}{},
+				XXX_unrecognized:     []byte{},
+				XXX_sizecache:        0,
+			},
+		}
 		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &att)
 		// cb returns true to stop early
 		if cb(iter.Key(), att) {
 			return
 		}
 	}
+}
+
+// GetMostRecentAttestations returns sorted (by nonce) attestations up to a provided limit number of attestations
+// Note: calls GetAttestationMapping in the hopes that there are potentially many attestations
+// which are distributed between few nonces to minimize sorting time
+func (k Keeper) GetMostRecentAttestations(ctx sdk.Context, limit uint64) []*types.Attestation {
+	attestationMapping := k.GetAttestationMapping(ctx)
+	attestations := make([]*types.Attestation, 0, limit)
+
+	keys := make([]uint64, 0, len(attestationMapping))
+	for k := range attestationMapping {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	// Iterate the nonces and collect the attestations
+	count := 0
+	for _, nonce := range keys {
+		if count >= int(limit) {
+			break
+		}
+		for _, att := range attestationMapping[nonce] {
+			if count >= int(limit) {
+				break
+			}
+			attestations = append(attestations, &att)
+			count++
+		}
+	}
+
+	return attestations
 }
 
 // GetLastObservedEventNonce returns the latest observed event nonce
@@ -230,7 +274,10 @@ func (k Keeper) GetLastObservedEthereumBlockHeight(ctx sdk.Context) types.LastOb
 			EthereumBlockHeight: 0,
 		}
 	}
-	height := types.LastObservedEthereumBlockHeight{}
+	height := types.LastObservedEthereumBlockHeight{
+		CosmosBlockHeight:   0,
+		EthereumBlockHeight: 0,
+	}
 	k.cdc.MustUnmarshalBinaryBare(bytes, &height)
 	return height
 }
@@ -256,7 +303,13 @@ func (k Keeper) GetLastObservedValset(ctx sdk.Context) *types.Valset {
 	if len(bytes) == 0 {
 		return nil
 	}
-	valset := types.Valset{}
+	valset := types.Valset{
+		Nonce:        0,
+		Members:      []*types.BridgeValidator{},
+		Height:       0,
+		RewardAmount: sdk.Int{},
+		RewardToken:  "",
+	}
 	k.cdc.MustUnmarshalBinaryBare(bytes, &valset)
 	return &valset
 }

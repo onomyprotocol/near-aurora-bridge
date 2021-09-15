@@ -16,6 +16,7 @@ import (
 	"github.com/althea-net/cosmos-gravity-bridge/module/x/gravity/types"
 )
 
+//nolint: exhaustivestruct
 func TestQueryValsetConfirm(t *testing.T) {
 	var (
 		nonce                                       = uint64(1)
@@ -74,6 +75,7 @@ func TestQueryValsetConfirm(t *testing.T) {
 	}
 }
 
+//nolint: exhaustivestruct
 func TestAllValsetConfirmsBynonce(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -134,6 +136,7 @@ func TestAllValsetConfirmsBynonce(t *testing.T) {
 }
 
 // TODO: Check failure modes
+//nolint: exhaustivestruct
 func TestLastValsetRequests(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -288,6 +291,7 @@ func TestLastValsetRequests(t *testing.T) {
 	}
 }
 
+//nolint: exhaustivestruct
 // TODO: check that it doesn't accidently return a valset that HAS been signed
 // Right now it is basically just testing that any valset comes back
 func TestPendingValsetRequests(t *testing.T) {
@@ -458,6 +462,7 @@ func TestPendingValsetRequests(t *testing.T) {
 	}
 }
 
+//nolint: exhaustivestruct
 // TODO: check that it actually returns a batch that has NOT been signed, not just any batch
 func TestLastPendingBatchRequest(t *testing.T) {
 	input := CreateTestEnv(t)
@@ -504,11 +509,11 @@ func TestLastPendingBatchRequest(t *testing.T) {
 		}
 		},
 		{
-		"id": "1",
+		"id": "3",
 		"sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 		"dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
 		"erc20_token": {
-			"amount": "100",
+			"amount": "102",
 			"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
 		},
 		"erc20_fee": {
@@ -533,6 +538,7 @@ func TestLastPendingBatchRequest(t *testing.T) {
 	}
 }
 
+//nolint: exhaustivestruct
 func createTestBatch(t *testing.T, input TestInput) {
 	var (
 		mySender            = bytes.Repeat([]byte{1}, sdk.AddrLen)
@@ -556,6 +562,11 @@ func createTestBatch(t *testing.T, input TestInput) {
 		fee := types.NewERC20Token(v, myTokenContractAddr).GravityCoin()
 		_, err = input.GravityKeeper.AddToOutgoingPool(input.Context, mySender, myReceiver, amount, fee)
 		require.NoError(t, err)
+		// Should create:
+		// 1: amount 100, fee 2
+		// 2: amount 101, fee 3
+		// 3: amount 102, fee 2
+		// 4: amount 103, fee 1
 	}
 	// when
 	input.Context = input.Context.WithBlockTime(now)
@@ -563,8 +574,11 @@ func createTestBatch(t *testing.T, input TestInput) {
 	// tx batch size is 2, so that some of them stay behind
 	_, err = input.GravityKeeper.BuildOutgoingTXBatch(input.Context, myTokenContractAddr, 2)
 	require.NoError(t, err)
+	// Should have 2 and 3 from above
+	// 1 and 4 should be unbatched
 }
 
+//nolint: exhaustivestruct
 func TestQueryAllBatchConfirms(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -590,6 +604,7 @@ func TestQueryAllBatchConfirms(t *testing.T) {
 	assert.JSONEq(t, string(expectedJSON), string(batchConfirms), "json is equal")
 }
 
+//nolint: exhaustivestruct
 func TestQueryLogicCalls(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -646,6 +661,7 @@ func TestQueryLogicCalls(t *testing.T) {
 	require.NoError(t, err)
 }
 
+//nolint: exhaustivestruct
 func TestQueryLogicCallsConfirms(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -704,6 +720,7 @@ func TestQueryLogicCallsConfirms(t *testing.T) {
 	assert.Equal(t, len(res), 1)
 }
 
+//nolint: exhaustivestruct
 // TODO: test that it gets the correct batch, not just any batch.
 // Check with multiple nonces and tokenContracts
 func TestQueryBatch(t *testing.T) {
@@ -743,11 +760,11 @@ func TestQueryBatch(t *testing.T) {
 			  },
 			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
 			  "erc20_token": {
-				"amount": "100",
+				"amount": "102",
 				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
-			  "id": "1"
+			  "id": "3"
 			}
 		  ],
 		  "batch_nonce": "1",
@@ -761,6 +778,7 @@ func TestQueryBatch(t *testing.T) {
 	assert.JSONEq(t, string(expectedJSON), string(batch), string(batch))
 }
 
+//nolint: exhaustivestruct
 func TestLastBatchesRequest(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -798,7 +816,7 @@ func TestLastBatchesRequest(t *testing.T) {
 				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
-			  "id": "3"
+			  "id": "7"
 			}
 		  ],
 		  "batch_nonce": "2",
@@ -827,11 +845,11 @@ func TestLastBatchesRequest(t *testing.T) {
 			  },
 			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
 			  "erc20_token": {
-				"amount": "100",
+				"amount": "102",
 				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
-			  "id": "1"
+			  "id": "3"
 			}
 		  ],
 		  "batch_nonce": "1",
@@ -844,6 +862,7 @@ func TestLastBatchesRequest(t *testing.T) {
 	assert.JSONEq(t, string(expectedJSON), string(lastBatches), "json is equal")
 }
 
+//nolint: exhaustivestruct
 // tests setting and querying eth address and orchestrator addresses
 func TestQueryCurrentValset(t *testing.T) {
 	var (
@@ -862,6 +881,7 @@ func TestQueryCurrentValset(t *testing.T) {
 	assert.Equal(t, expectedValset, currentValset)
 }
 
+//nolint: exhaustivestruct
 func TestQueryERC20ToDenom(t *testing.T) {
 	var (
 		erc20 = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
@@ -883,6 +903,7 @@ func TestQueryERC20ToDenom(t *testing.T) {
 	assert.Equal(t, correctBytes, queriedDenom)
 }
 
+//nolint: exhaustivestruct
 func TestQueryDenomToERC20(t *testing.T) {
 	var (
 		erc20 = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
@@ -905,6 +926,7 @@ func TestQueryDenomToERC20(t *testing.T) {
 	assert.Equal(t, correctBytes, queriedERC20)
 }
 
+//nolint: exhaustivestruct
 func TestQueryPendingSendToEth(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -933,15 +955,22 @@ func TestQueryPendingSendToEth(t *testing.T) {
 		fee := types.NewERC20Token(v, myTokenContractAddr).GravityCoin()
 		_, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount, fee)
 		require.NoError(t, err)
+		// Should create:
+		// 1: amount 100, fee 2
+		// 2: amount 101, fee 3
+		// 3: amount 102, fee 2
+		// 4: amount 104, fee 1
 	}
 
 	// when
 	ctx = ctx.WithBlockTime(now)
 
 	// tx batch size is 2, so that some of them stay behind
+	// Should contain 2 and 3 from above
 	_, err := input.GravityKeeper.BuildOutgoingTXBatch(ctx, myTokenContractAddr, 2)
 	require.NoError(t, err)
 
+	// Should receive 1 and 4 unbatched, 2 and 3 batched in response
 	response, err := queryPendingSendToEth(ctx, mySender.String(), input.GravityKeeper)
 	require.NoError(t, err)
 	expectedJSON := []byte(`{
@@ -960,12 +989,12 @@ func TestQueryPendingSendToEth(t *testing.T) {
       }
     },
     {
-      "id": "1",
+      "id": "3",
       "sender": "cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn",
       "dest_address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7",
       "erc20_token": {
         "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
-        "amount": "100"
+        "amount": "102"
       },
       "erc20_fee": {
         "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
@@ -975,12 +1004,12 @@ func TestQueryPendingSendToEth(t *testing.T) {
   ],
   "unbatched_transfers": [
     {
-      "id": "3",
+      "id": "1",
       "sender": "cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn",
       "dest_address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7",
       "erc20_token": {
         "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
-        "amount": "102"
+        "amount": "100"
       },
       "erc20_fee": {
         "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",

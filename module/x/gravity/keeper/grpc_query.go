@@ -5,11 +5,22 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/althea-net/cosmos-gravity-bridge/module/x/gravity/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = Keeper{
+	StakingKeeper:      nil,
+	storeKey:           nil,
+	paramSpace:         paramstypes.Subspace{},
+	cdc:                nil,
+	bankKeeper:         nil,
+	SlashingKeeper:     nil,
+	AttestationHandler: nil,
+}
+
+const QUERY_ATTESTATIONS_LIMIT uint64 = 1000
 
 // Params queries the params of the gravity module
 func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
@@ -261,6 +272,20 @@ func (k Keeper) ERC20ToDenom(
 	return &ret, nil
 }
 
+// GetAttestations queries the attestation map
+func (k Keeper) GetAttestations(
+	c context.Context,
+	req *types.QueryAttestationsRequest) (*types.QueryAttestationsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	limit := req.Limit
+	if limit > QUERY_ATTESTATIONS_LIMIT {
+		limit = QUERY_ATTESTATIONS_LIMIT
+	}
+	attestations := k.GetMostRecentAttestations(ctx, limit)
+
+	return &types.QueryAttestationsResponse{Attestations: attestations}, nil
+}
+
 func (k Keeper) GetDelegateKeyByValidator(
 	c context.Context,
 	req *types.QueryDelegateKeysByValidatorAddress) (*types.QueryDelegateKeysByValidatorAddressResponse, error) {
@@ -332,23 +357,24 @@ func (k Keeper) GetPendingSendToEth(
 	req *types.QueryPendingSendToEth) (*types.QueryPendingSendToEthResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	batches := k.GetOutgoingTxBatches(ctx)
-	unbatchedTx := k.GetPoolTransactions(ctx)
-	senderAddress := req.SenderAddress
-	var res *types.QueryPendingSendToEthResponse
-
+	unbatched_tx := k.GetUnbatchedTransactions(ctx)
+	sender_address := req.GetSenderAddress()
+	res := types.QueryPendingSendToEthResponse{
+		TransfersInBatches: []*types.OutgoingTransferTx{},
+		UnbatchedTransfers: []*types.OutgoingTransferTx{},
+	}
 	for _, batch := range batches {
 		for _, tx := range batch.Transactions {
-			if tx.Sender == senderAddress {
+			if tx.Sender == sender_address {
 				res.TransfersInBatches = append(res.TransfersInBatches, tx)
 			}
 		}
 	}
-
-	for _, tx := range unbatchedTx {
-		if tx.Sender == senderAddress {
+	for _, tx := range unbatched_tx {
+		if tx.Sender == sender_address {
 			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
 		}
 	}
 
-	return res, nil
+	return &res, nil
 }

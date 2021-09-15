@@ -76,6 +76,7 @@ pub async fn orchestrator_main_loop(
         web3,
         grpc_client.clone(),
         gravity_contract_address,
+        &config.relayer,
     );
 
     // if the relayer is not enabled we just don't start the future
@@ -201,7 +202,6 @@ pub async fn eth_signer_main_loop(
         return;
     }
     let gravity_id = gravity_id.unwrap();
-    let gravity_id = String::from_utf8(gravity_id.clone()).expect("Invalid GravityID");
 
     loop {
         let loop_start = Instant::now();
