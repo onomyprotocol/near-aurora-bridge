@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/althea-net/cosmos-gravity-bridge/module/x/gravity/types"
 )
 
+//nolint: exhaustivestruct
 func TestBatches(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -40,6 +42,12 @@ func TestBatches(t *testing.T) {
 		fee := types.NewERC20Token(v, myTokenContractAddr).GravityCoin()
 		_, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount, fee)
 		require.NoError(t, err)
+		ctx.Logger().Info(fmt.Sprintf("Created transaction %v with amount %v and fee %v", i, amount, fee))
+		// Should create:
+		// 1: tx amount is 100, fee is 2, id is 1
+		// 2: tx amount is 101, fee is 3, id is 2
+		// 3: tx amount is 102, fee is 2, id is 3
+		// 4: tx amount is 103, fee is 1, id is 4
 	}
 
 	// when
@@ -52,6 +60,8 @@ func TestBatches(t *testing.T) {
 	// then batch is persisted
 	gotFirstBatch := input.GravityKeeper.GetOutgoingTXBatch(ctx, firstBatch.TokenContract, firstBatch.BatchNonce)
 	require.NotNil(t, gotFirstBatch)
+	// Should have txs 2: and 3: from above, as ties in fees are broken by transaction index
+	ctx.Logger().Info(fmt.Sprintf("found batch %+v", gotFirstBatch))
 
 	expFirstBatch := &types.OutgoingTxBatch{
 		BatchNonce: 1,
@@ -64,11 +74,11 @@ func TestBatches(t *testing.T) {
 				Erc20Token:  types.NewERC20Token(101, myTokenContractAddr),
 			},
 			{
-				Id:          1,
+				Id:          3,
 				Erc20Fee:    types.NewERC20Token(2, myTokenContractAddr),
 				Sender:      mySender.String(),
 				DestAddress: myReceiver,
-				Erc20Token:  types.NewERC20Token(100, myTokenContractAddr),
+				Erc20Token:  types.NewERC20Token(102, myTokenContractAddr),
 			},
 		},
 		TokenContract: myTokenContractAddr,
@@ -77,18 +87,15 @@ func TestBatches(t *testing.T) {
 	assert.Equal(t, expFirstBatch, gotFirstBatch)
 
 	// and verify remaining available Tx in the pool
-	var gotUnbatchedTx []*types.OutgoingTransferTx
-	input.GravityKeeper.IterateOutgoingPoolByFee(ctx, myTokenContractAddr, func(_ uint64, tx *types.OutgoingTransferTx) bool {
-		gotUnbatchedTx = append(gotUnbatchedTx, tx)
-		return false
-	})
+	// Should still have 1: and 4: above
+	gotUnbatchedTx := input.GravityKeeper.GetUnbatchedTransactionsByContract(ctx, myTokenContractAddr)
 	expUnbatchedTx := []*types.OutgoingTransferTx{
 		{
-			Id:          3,
+			Id:          1,
 			Erc20Fee:    types.NewERC20Token(2, myTokenContractAddr),
 			Sender:      mySender.String(),
 			DestAddress: myReceiver,
-			Erc20Token:  types.NewERC20Token(102, myTokenContractAddr),
+			Erc20Token:  types.NewERC20Token(100, myTokenContractAddr),
 		},
 		{
 			Id:          4,
@@ -110,6 +117,9 @@ func TestBatches(t *testing.T) {
 		fee := types.NewERC20Token(v, myTokenContractAddr).GravityCoin()
 		_, err = input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount, fee)
 		require.NoError(t, err)
+		// Creates the following:
+		// 5: amount 100, fee 4, id 5
+		// 6: amount 101, fee 5, id 6
 	}
 
 	// create the more profitable batch
@@ -119,6 +129,7 @@ func TestBatches(t *testing.T) {
 	require.NoError(t, err)
 
 	// check that the more profitable batch has the right txs in it
+	// Should only have 5: and 6: above
 	expSecondBatch := &types.OutgoingTxBatch{
 		BatchNonce: 2,
 		Transactions: []*types.OutgoingTransferTx{
@@ -154,11 +165,7 @@ func TestBatches(t *testing.T) {
 	require.Nil(t, gotSecondBatch)
 
 	// check that txs from first batch have been freed
-	gotUnbatchedTx = nil
-	input.GravityKeeper.IterateOutgoingPoolByFee(ctx, myTokenContractAddr, func(_ uint64, tx *types.OutgoingTransferTx) bool {
-		gotUnbatchedTx = append(gotUnbatchedTx, tx)
-		return false
-	})
+	gotUnbatchedTx = input.GravityKeeper.GetUnbatchedTransactionsByContract(ctx, myTokenContractAddr)
 	expUnbatchedTx = []*types.OutgoingTransferTx{
 		{
 			Id:          2,
@@ -168,18 +175,18 @@ func TestBatches(t *testing.T) {
 			Erc20Token:  types.NewERC20Token(101, myTokenContractAddr),
 		},
 		{
-			Id:          1,
-			Erc20Fee:    types.NewERC20Token(2, myTokenContractAddr),
-			Sender:      mySender.String(),
-			DestAddress: myReceiver,
-			Erc20Token:  types.NewERC20Token(100, myTokenContractAddr),
-		},
-		{
 			Id:          3,
 			Erc20Fee:    types.NewERC20Token(2, myTokenContractAddr),
 			Sender:      mySender.String(),
 			DestAddress: myReceiver,
 			Erc20Token:  types.NewERC20Token(102, myTokenContractAddr),
+		},
+		{
+			Id:          1,
+			Erc20Fee:    types.NewERC20Token(2, myTokenContractAddr),
+			Sender:      mySender.String(),
+			DestAddress: myReceiver,
+			Erc20Token:  types.NewERC20Token(100, myTokenContractAddr),
 		},
 		{
 			Id:          4,
@@ -194,6 +201,7 @@ func TestBatches(t *testing.T) {
 
 // tests that batches work with large token amounts, mostly a duplicate of the above
 // tests but using much bigger numbers
+//nolint: exhaustivestruct
 func TestBatchesFullCoins(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -262,11 +270,7 @@ func TestBatchesFullCoins(t *testing.T) {
 	assert.Equal(t, expFirstBatch, gotFirstBatch)
 
 	// and verify remaining available Tx in the pool
-	var gotUnbatchedTx []*types.OutgoingTransferTx
-	input.GravityKeeper.IterateOutgoingPoolByFee(ctx, myTokenContractAddr, func(_ uint64, tx *types.OutgoingTransferTx) bool {
-		gotUnbatchedTx = append(gotUnbatchedTx, tx)
-		return false
-	})
+	gotUnbatchedTx := input.GravityKeeper.GetUnbatchedTransactionsByContract(ctx, myTokenContractAddr)
 	expUnbatchedTx := []*types.OutgoingTransferTx{
 		{
 			Id:          1,
@@ -339,11 +343,7 @@ func TestBatchesFullCoins(t *testing.T) {
 	require.Nil(t, gotSecondBatch)
 
 	// check that txs from first batch have been freed
-	gotUnbatchedTx = nil
-	input.GravityKeeper.IterateOutgoingPoolByFee(ctx, myTokenContractAddr, func(_ uint64, tx *types.OutgoingTransferTx) bool {
-		gotUnbatchedTx = append(gotUnbatchedTx, tx)
-		return false
-	})
+	gotUnbatchedTx = input.GravityKeeper.GetUnbatchedTransactionsByContract(ctx, myTokenContractAddr)
 	expUnbatchedTx = []*types.OutgoingTransferTx{
 		{
 			Id:          2,
@@ -379,6 +379,7 @@ func TestBatchesFullCoins(t *testing.T) {
 
 // TestManyBatches handles test cases around batch execution, specifically executing multiple batches
 // out of sequential order, which is exactly what happens on the
+//nolint: exhaustivestruct
 func TestManyBatches(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -455,6 +456,7 @@ func TestManyBatches(t *testing.T) {
 	}
 }
 
+//nolint: exhaustivestruct
 func TestPoolTxRefund(t *testing.T) {
 	input := CreateTestEnv(t)
 	ctx := input.Context
@@ -485,17 +487,23 @@ func TestPoolTxRefund(t *testing.T) {
 		fee := types.NewERC20Token(v, myTokenContractAddr).GravityCoin()
 		_, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount, fee)
 		require.NoError(t, err)
+		// Should have created:
+		// 1: amount 100, fee 2
+		// 2: amount 101, fee 3
+		// 3: amount 102, fee 2
+		// 4: amount 103, fee 1
 	}
 
 	// when
 	ctx = ctx.WithBlockTime(now)
 
 	// tx batch size is 2, so that some of them stay behind
+	// Should have 2: and 3: from above
 	_, err := input.GravityKeeper.BuildOutgoingTXBatch(ctx, myTokenContractAddr, 2)
 	require.NoError(t, err)
 
 	// try to refund a tx that's in a batch
-	err1 := input.GravityKeeper.RemoveFromOutgoingPoolAndRefund(ctx, 1, mySender)
+	err1 := input.GravityKeeper.RemoveFromOutgoingPoolAndRefund(ctx, 3, mySender)
 	require.Error(t, err1)
 
 	// try to refund somebody else's tx

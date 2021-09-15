@@ -35,7 +35,7 @@ func (k Keeper) BuildOutgoingTXBatch(
 	if lastBatch != nil {
 		// this traverses the current tx pool for this token type and determines what
 		// fees a hypothetical batch would have if created
-		currentFees := k.GetBatchFeesByTokenType(ctx, contractAddress, maxElements)
+		currentFees := k.GetBatchFeeByTokenType(ctx, contractAddress, maxElements)
 		if currentFees == nil {
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "error getting fees from tx pool")
 		}
@@ -56,6 +56,7 @@ func (k Keeper) BuildOutgoingTXBatch(
 		BatchTimeout:  k.getBatchTimeoutHeight(ctx),
 		Transactions:  selectedTx,
 		TokenContract: contractAddress,
+		Block:         0,
 	}
 	k.StoreBatch(ctx, batch)
 
@@ -104,11 +105,6 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, n
 		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, nonce))
 	}
 
-	// cleanup outgoing TX pool, while these transactions where hidden from GetPoolTransactions
-	// they still exist in the pool and need to be cleaned up.
-	for _, tx := range b.Transactions {
-		k.removePoolEntry(ctx, tx.Id)
-	}
 	// Iterate through remaining batches
 	k.IterateOutgoingTXBatches(ctx, func(key []byte, iter_batch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
@@ -162,10 +158,14 @@ func (k Keeper) pickUnbatchedTX(
 	maxElements uint) ([]*types.OutgoingTransferTx, error) {
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
-	k.IterateOutgoingPoolByFee(ctx, contractAddress, func(txID uint64, tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactionsByContract(ctx, contractAddress, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		if tx != nil && tx.Erc20Fee != nil {
 			selectedTx = append(selectedTx, tx)
-			err = k.removeFromUnbatchedTXIndex(ctx, *tx.Erc20Fee, txID)
+			err = k.removeUnbatchedTX(ctx, *tx.Erc20Fee, tx.Id)
+			oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, *tx.Erc20Fee, tx.Id)
+			if oldTx != nil || oldTxErr == nil {
+				panic("picked a duplicate transaction from the pool, duplicates should never exist!")
+			}
 			return err != nil || uint(len(selectedTx)) == maxElements
 		} else {
 			panic("tx and fee should never be nil!")
@@ -198,8 +198,10 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, non
 		return types.ErrUnknown
 	}
 	for _, tx := range batch.Transactions {
-		tx.Erc20Fee.Contract = tokenContract
-		k.prependToUnbatchedTXIndex(ctx, tokenContract, *tx.Erc20Fee, tx.Id)
+		err := k.addUnbatchedTX(ctx, tx)
+		if err != nil {
+			panic(sdkerrors.Wrapf(err, "unable to add batched transaction back into pool %v", tx))
+		}
 	}
 
 	// Delete batch since it is finished
