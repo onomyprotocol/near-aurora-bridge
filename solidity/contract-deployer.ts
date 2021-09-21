@@ -248,7 +248,7 @@ async function getLatestValset(): Promise<Valset> {
   }
   let request_string = args["cosmos-node"] + "/abci_query"
   let response = await axios.get(request_string, {params: {
-    path: "\"/custom/gravity/currentValset/\"",
+    path: "\"/custom/nab/currentValset/\"",
     height: block_height,
     prove: "false",
   }});
@@ -268,7 +268,7 @@ async function getGravityId(): Promise<string> {
   }
   let request_string = args["cosmos-node"] + "/abci_query"
   let response = await axios.get(request_string, {params: {
-    path: "\"/custom/gravity/gravityID/\"",
+    path: "\"/custom/nab/gravityID/\"",
     height: block_height,
     prove: "false",
   }});

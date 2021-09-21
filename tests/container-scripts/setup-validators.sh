@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eux
 # your gaiad binary name
-BIN=gravity
+BIN=nab
 
 CHAIN_ID="gravity-test"
 

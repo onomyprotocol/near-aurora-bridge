@@ -34,7 +34,7 @@ Here we determine if the deposited coin is Cosmos Originated, at which point we 
 
 This covers the complete flow, including code links, for a withdraw. This is covered conceptually in [minting and locking](/docs/design/mint-lock.md), [Ethereum signing](/docs/design/ethereum-signing.md), and [batch creation spec](/spec/batch-creation-spec.md) which you should read first.
 
-First a user on the Cosmos chain calls [MsgSendToEth](/module/proto/gravity/v1/msgs.proto). This message will contain two fees. One fee for the Cosmos transaction, and another fee for the bridge.
+First a user on the Cosmos chain calls [MsgSendToEth](/module/proto/nab/v1/msgs.proto). This message will contain two fees. One fee for the Cosmos transaction, and another fee for the bridge.
 
 By the time we handle the send in [msg_server.go](/module/x/gravity/keeper/msg_server.go) the Cosmos chain tx fee has already been handled. [ValidateBasic](/module/x/gravity/types/msgs.go) verifies that the bridge fee is the same as the bridge asset being sent to Ethereum. As covered in [minting and locking](/docs/design/mint-lock.md) this is so that the relayers can be rewarded on the Ethereum side of the bridge.
 
@@ -42,21 +42,21 @@ Once the message has passed basic verification it moves into the TxPool [AddToOu
 
 As covered in the [batch creation spec](/spec/batch-creation-spec.md) transactions will wait in this pool until one of two things happens.
 
-The user may call [MsgCancelSendToEth](/module/proto/gravity/v1/msgs.proto) which will remove the transaction from the pool and refund the user. In [msg_server.go](/module/x/gravity/keeper/msg_server.go) we call [RemoveFromOutgoingPoolAndRefund](/module/x/gravity/keeper/pool.go).
+The user may call [MsgCancelSendToEth](/module/proto/nab/v1/msgs.proto) which will remove the transaction from the pool and refund the user. In [msg_server.go](/module/x/gravity/keeper/msg_server.go) we call [RemoveFromOutgoingPoolAndRefund](/module/x/gravity/keeper/pool.go).
 
-Alternatively a relayer using the [BatchFees](/module/proto/gravity/v1/query.proto) query endpoint may decide to call [MsgRequestBatch](/module/proto/gravity/v1/msgs.proto). Note automatic execution of request batch is not currently implemented and is in issue #305
+Alternatively a relayer using the [BatchFees](/module/proto/nab/v1/query.proto) query endpoint may decide to call [MsgRequestBatch](/module/proto/nab/v1/msgs.proto). Note automatic execution of request batch is not currently implemented and is in issue #305
 
 RequestBatch in [msg_server.go](/module/x/gravity/keeper/msg_server.go) calls [BuildOutgoingTXBatch](/module/x/gravity/keeper/batch.go) which implements the protocol defined in the [batch creation spec](/spec/batch-creation-spec.md). Creating a batch of up to `OutgoingTxBatchSize` number of withdraws in order of descending fee amounts.
 
-Now the resulting batch is made available to [Ethereum signers](/docs/design/ethereum-signing.md) via the [LastPendingBatchRequestByAddr](/module/proto/gravity/v1/query.proto) endpoint. The [LastPendingBatchRequestsByAddr](/module/x/gravity/keeper/grpc_query.go) endpoint looks up for the Ethereum signer what batches it has not yet signed that it must sign to avoid slashing see [slashing spec](/spec/slashing-spec.md).
+Now the resulting batch is made available to [Ethereum signers](/docs/design/ethereum-signing.md) via the [LastPendingBatchRequestByAddr](/module/proto/nab/v1/query.proto) endpoint. The [LastPendingBatchRequestsByAddr](/module/x/gravity/keeper/grpc_query.go) endpoint looks up for the Ethereum signer what batches it has not yet signed that it must sign to avoid slashing see [slashing spec](/spec/slashing-spec.md).
 
-The [eth_signer_main_loop](/orchestrator/orchestrator/src/main_loop.rs) essentially just queries three of these endpoints (one for each type of signature) and submits signatures via [MsgConfirmBatch](/module/proto/gravity/v1/msgs.proto). Which is handled in [msg_server.go](/module/x/gravity/keeper/msg_server.go).
+The [eth_signer_main_loop](/orchestrator/orchestrator/src/main_loop.rs) essentially just queries three of these endpoints (one for each type of signature) and submits signatures via [MsgConfirmBatch](/module/proto/nab/v1/msgs.proto). Which is handled in [msg_server.go](/module/x/gravity/keeper/msg_server.go).
 
 The MsgConfirmBatch handler loads the tx batch and verifies that the Ethereum signature is from the correct address, over the correct batch, and not already submitted in `confirmHandlerCommon` (also in msg_server.go).
 
 At this point the batch is ready to execute and any relayer may relay it to Ethereum.
 
-In the [relayer_main_loop](/orchestrator/relayer/src/main_loop.rs) the query endpoint [OutgoingTxBatches](/module/proto/gravity/v1/query.proto) implemented in [grpc_query.go](/module/x/gravity/keeper/grpc_query.go) lists the last 100 outgoing tx batches. The relayer then calls [BatchConfirms](/module/proto/gravity/v1/query.proto) which returns all the signatures for the given batch.
+In the [relayer_main_loop](/orchestrator/relayer/src/main_loop.rs) the query endpoint [OutgoingTxBatches](/module/proto/nab/v1/query.proto) implemented in [grpc_query.go](/module/x/gravity/keeper/grpc_query.go) lists the last 100 outgoing tx batches. The relayer then calls [BatchConfirms](/module/proto/nab/v1/query.proto) which returns all the signatures for the given batch.
 
 Now the challenge is to take these signatures and prepare them for submission to Ethereum. This is a non-trivial task.
 See [relaying semantics doc](/docs/design/relaying-semantics.md).
@@ -83,9 +83,9 @@ One of the biggest challenges in the operation of the Gravity bridge is keeping 
 
 Specifically `createValsets` this function retrieves the current validator set as well as the last generated validator set snapshot from the store. Using a function [PowerDiff](/module/x/gravity/types/types.go) it determines if the current voting power has changed more than 5% since the last snapshot was created. If so a new validator set snapshot is created.
 
-Once the new validator set snapshot is created it is available to [Ethereum signers](/docs/design/ethereum-signing.md) via [LastPendingValsetRequestByAddr](/module/proto/gravity/v1/query.proto) endpoint. The [LastPendingValsetRequestsByAddr](/module/x/gravity/keeper/grpc_query.go) endpoint looks up for the Ethereum signer what validator set snapshots it has not yet signed that it must sign to avoid slashing see [slashing spec](/spec/slashing-spec.md).
+Once the new validator set snapshot is created it is available to [Ethereum signers](/docs/design/ethereum-signing.md) via [LastPendingValsetRequestByAddr](/module/proto/nab/v1/query.proto) endpoint. The [LastPendingValsetRequestsByAddr](/module/x/gravity/keeper/grpc_query.go) endpoint looks up for the Ethereum signer what validator set snapshots it has not yet signed that it must sign to avoid slashing see [slashing spec](/spec/slashing-spec.md).
 
-The [eth_signer_main_loop](/orchestrator/orchestrator/src/main_loop.rs) essentially just queries three of these endpoints (one for each type of signature) and submits signatures via [MsgValsetConfirm](/module/proto/gravity/v1/msgs.proto). Which is handled in [msg_server.go](/module/x/gravity/keeper/msg_server.go).
+The [eth_signer_main_loop](/orchestrator/orchestrator/src/main_loop.rs) essentially just queries three of these endpoints (one for each type of signature) and submits signatures via [MsgValsetConfirm](/module/proto/nab/v1/msgs.proto). Which is handled in [msg_server.go](/module/x/gravity/keeper/msg_server.go).
 
 The `MsgValsetConfirm` handler loads the tx batch and verifies that the Ethereum signature is from the correct address, over the correct valset, and not already submitted in `confirmHandlerCommon` (also in msg_server.go).
 
