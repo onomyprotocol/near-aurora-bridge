@@ -17,7 +17,7 @@ pub async fn cosmos_to_eth(args: CosmosToEthOpts, address_prefix: String) {
 
     let cosmos_address = cosmos_key.to_address(&address_prefix).unwrap();
 
-    let is_cosmos_originated = gravity_coin.denom.starts_with("gravity");
+    let is_cosmos_originated = gravity_coin.denom.starts_with("nab");
 
     info!("Sending from Cosmos address {}", cosmos_address);
     let connections =

@@ -1,7 +1,7 @@
 # Gravity messages
 
 This is a reference document for Gravity message types. For code reference and exact
-arguments see the [proto definitions](/module/proto/gravity/v1/msgs.proto)
+arguments see the [proto definitions](/module/proto/nab/v1/msgs.proto)
 
 ## User messages
 
@@ -25,7 +25,7 @@ These are messages run by relayers. Relayers are unpermissioned and simply work 
 
 ### RequestBatch
 
-Relayers use `QueryPendingSendToEth` in [query.proto](/module/proto/gravity/v1/query.proto) to query the potential fees for a batch of each
+Relayers use `QueryPendingSendToEth` in [query.proto](/module/proto/nab/v1/query.proto) to query the potential fees for a batch of each
 token type. When they find a batch that they wish to relay they send in a RequestBatch message and the Gravity module creates a batch.
 
 This then triggers the Ethereum Signers to send in ConfirmBatch messages, which the signatures required to submit the batch to the Ethereum chain.
@@ -66,7 +66,7 @@ claim representing a `LogicCallEvent` from [Gravity.sol](/solidity/contracts/Gra
 All validators run two processes in addition to their Cosmos node. An Ethereum oracle and Ethereum signer, these are bundled into a single Orchestrator binary for ease of use.
 for further reference on this process see the [design overview](/docs/design/overview.md), [eth signer design](/docs/design/ethereum-signing.md), and [minting and locking](/docs/design/mint-lock.md)
 
-The Ethereum signer watches several [query endpoints](/module/proto/gravity/v1/query.proto) and it's only job is to submit a signature for anything that appears on those endpoints. For this reason the validator must provide a secure RPC to a Cosmos node following chain consensus. Or they risk being tricked into signing the wrong thing.
+The Ethereum signer watches several [query endpoints](/module/proto/nab/v1/query.proto) and it's only job is to submit a signature for anything that appears on those endpoints. For this reason the validator must provide a secure RPC to a Cosmos node following chain consensus. Or they risk being tricked into signing the wrong thing.
 
 ### ConfirmBatch
 

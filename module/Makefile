@@ -39,8 +39,8 @@ whitespace += $(whitespace)
 comma := ,
 build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=gravity \
-	-X github.com/cosmos/cosmos-sdk/version.AppName=gravity \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=nab \
+	-X github.com/cosmos/cosmos-sdk/version.AppName=nab \
 	-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 	-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 	-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
@@ -50,7 +50,7 @@ BUILD_FLAGS := -ldflags '$(ldflags)' -gcflags="all=-N -l"
 all: install
 
 install: go.sum
-		go install $(BUILD_FLAGS) ./cmd/gravity
+		go install $(BUILD_FLAGS) ./cmd/nab
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
@@ -60,7 +60,7 @@ test:
 	@go test -mod=readonly $(PACKAGES)
 	
 build-linux:
-	GOOS=linux GOARCH=amd64 go build -o build/gravity $(BUILD_FLAGS) ./cmd/gravity/main.go
+	GOOS=linux GOARCH=amd64 go build -o build/nab $(BUILD_FLAGS) ./cmd/nab/main.go
 
 # look into .golangci.yml for enabling / disabling linters
 lint:
