@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 // Tests that the pool is populated with the created transactions before any batch is created

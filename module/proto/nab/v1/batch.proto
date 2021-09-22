@@ -4,7 +4,7 @@ package nab.v1;
 import "nab/v1/attestation.proto";
 // import "nab/v1/types.proto";
 
-option go_package = "github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types";
+option go_package = "github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types";
 
 // OutgoingTxBatch represents a batch of transactions going from gravity to ETH
 message OutgoingTxBatch {

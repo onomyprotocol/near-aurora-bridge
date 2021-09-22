@@ -19,10 +19,10 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/client/cli"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/client/rest"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/keeper"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/client/cli"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/client/rest"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/keeper"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 // type check to ensure the interface is properly implemented

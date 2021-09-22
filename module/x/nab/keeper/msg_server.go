@@ -11,7 +11,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 type msgServer struct {

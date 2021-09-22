@@ -3,9 +3,9 @@ package nab
 import (
 	"sort"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/keeper"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/keeper"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 // EndBlocker is called at the end of every block

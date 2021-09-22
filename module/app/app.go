@@ -92,10 +92,10 @@ import (
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 
-	nabparams "github.com/althea-net/cosmos-gravity-bridge/module/app/params"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/keeper"
-	nabtypes "github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	nabparams "github.com/onomyprotocol/near-aurora-bridge/module/app/params"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/keeper"
+	nabtypes "github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 const appName = "app"

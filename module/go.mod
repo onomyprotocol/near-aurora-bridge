@@ -1,4 +1,4 @@
-module github.com/althea-net/cosmos-gravity-bridge/module
+module github.com/onomyprotocol/near-aurora-bridge/module
 
 go 1.15
 

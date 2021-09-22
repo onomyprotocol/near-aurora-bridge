@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/cmd/nab/cmd"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/onomyprotocol/near-aurora-bridge/module/cmd/nab/cmd"
 )
 
 func main() {

@@ -19,7 +19,6 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	nabtypes "github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -35,6 +34,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	nabtypes "github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 // GenTxCmd builds the application's gentx command.

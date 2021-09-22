@@ -14,7 +14,7 @@ import (
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 func GetTxCmd(storeKey string) *cobra.Command {

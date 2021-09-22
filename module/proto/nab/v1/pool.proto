@@ -3,7 +3,7 @@ package nab.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types";
+option go_package = "github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types";
 
 // IDSet represents a set of IDs
 message IDSet {

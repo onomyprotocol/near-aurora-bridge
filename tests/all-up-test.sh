@@ -25,4 +25,4 @@ ALCHEMY_ID=$2
 set -u
 
 # Run new test container instance
-docker run --name gravity_all_up_test_instance --cap-add=NET_ADMIN -t gravity-base /bin/bash /gravity/tests/container-scripts/all-up-test-internal.sh $NODES $TEST_TYPE $ALCHEMY_ID
+docker run --name gravity_all_up_test_instance --cap-add=NET_ADMIN -t nab-base /bin/bash /gravity/tests/container-scripts/all-up-test-internal.sh $NODES $TEST_TYPE $ALCHEMY_ID

@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/keeper"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/keeper"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 func TestValsetCreationIfNotAvailable(t *testing.T) {

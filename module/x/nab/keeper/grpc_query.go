@@ -7,7 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 var _ types.QueryServer = Keeper{

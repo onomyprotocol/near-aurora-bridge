@@ -11,7 +11,7 @@ import (
 	hexUtil "github.com/ethereum/go-ethereum/common/hexutil"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 type valsetConfirmReq struct {
