@@ -1,8 +1,8 @@
 package app
 
 import (
-	nabparams "github.com/althea-net/cosmos-gravity-bridge/module/app/params"
 	"github.com/cosmos/cosmos-sdk/std"
+	nabparams "github.com/onomyprotocol/near-aurora-bridge/module/app/params"
 )
 
 // MakeEncodingConfig creates an EncodingConfig for gravity.

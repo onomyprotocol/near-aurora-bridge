@@ -3,9 +3,9 @@ package keeper
 import (
 	"testing"
 
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/nab/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 	"github.com/stretchr/testify/require"
 )
 
