@@ -92,10 +92,10 @@ import (
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 
-	gravityparams "github.com/althea-net/cosmos-gravity-bridge/module/app/params"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/gravity"
-	"github.com/althea-net/cosmos-gravity-bridge/module/x/gravity/keeper"
-	gravitytypes "github.com/althea-net/cosmos-gravity-bridge/module/x/gravity/types"
+	nabparams "github.com/onomyprotocol/near-aurora-bridge/module/app/params"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab"
+	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/keeper"
+	nabtypes "github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
 const appName = "app"
@@ -129,7 +129,7 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		gravity.AppModuleBasic{},
+		nab.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -142,7 +142,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		gravitytypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
+		nabtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -151,8 +151,8 @@ var (
 	}
 
 	// verify app interface at compile time
-	_ simapp.App              = (*Gravity)(nil)
-	_ servertypes.Application = (*Gravity)(nil)
+	_ simapp.App              = (*Nab)(nil)
+	_ servertypes.Application = (*Nab)(nil)
 )
 
 // MakeCodec creates the application codec. The codec is sealed before it is
@@ -167,8 +167,8 @@ func MakeCodec() *codec.LegacyAmino {
 	return cdc
 }
 
-// Gravity extended ABCI application
-type Gravity struct {
+// Nab extended ABCI application
+type Nab struct {
 	*baseapp.BaseApp
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Marshaler
@@ -196,7 +196,7 @@ type Gravity struct {
 	ibcKeeper        *ibckeeper.Keeper
 	evidenceKeeper   evidencekeeper.Keeper
 	transferKeeper   ibctransferkeeper.Keeper
-	gravityKeeper    keeper.Keeper
+	nabKeeper        keeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -215,14 +215,14 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, ".gravity")
+	DefaultNodeHome = filepath.Join(userHomeDir, ".nab")
 }
 
-func NewGravityApp(
+func NewNabApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
-	homePath string, invCheckPeriod uint, encodingConfig gravityparams.EncodingConfig,
+	homePath string, invCheckPeriod uint, encodingConfig nabparams.EncodingConfig,
 	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
-) *Gravity {
+) *Nab {
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -237,13 +237,13 @@ func NewGravityApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		gravitytypes.StoreKey,
+		nabtypes.StoreKey,
 	)
 	tKeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	//nolint: exhaustivestruct
-	var app = &Gravity{
+	var app = &Nab{
 		BaseApp:           bApp,
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
@@ -376,10 +376,10 @@ func NewGravityApp(
 	)
 	app.evidenceKeeper = *evidenceKeeper
 
-	app.gravityKeeper = keeper.NewKeeper(
+	app.nabKeeper = keeper.NewKeeper(
 		appCodec,
-		keys[gravitytypes.StoreKey],
-		app.GetSubspace(gravitytypes.ModuleName),
+		keys[nabtypes.StoreKey],
+		app.GetSubspace(nabtypes.ModuleName),
 		stakingKeeper,
 		app.bankKeeper,
 		app.slashingKeeper,
@@ -389,7 +389,7 @@ func NewGravityApp(
 		stakingtypes.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
-			app.gravityKeeper.Hooks(),
+			app.nabKeeper.Hooks(),
 		),
 	)
 
@@ -459,8 +459,8 @@ func NewGravityApp(
 		ibc.NewAppModule(app.ibcKeeper),
 		params.NewAppModule(app.paramsKeeper),
 		transferModule,
-		gravity.NewAppModule(
-			app.gravityKeeper,
+		nab.NewAppModule(
+			app.nabKeeper,
 			app.bankKeeper,
 		),
 	)
@@ -478,7 +478,7 @@ func NewGravityApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		gravitytypes.ModuleName,
+		nabtypes.ModuleName,
 	)
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName,
@@ -494,7 +494,7 @@ func NewGravityApp(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		gravitytypes.ModuleName,
+		nabtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -589,20 +589,20 @@ func MakeCodecs() (codec.Marshaler, *codec.LegacyAmino) {
 }
 
 // Name returns the name of the App
-func (app *Gravity) Name() string { return app.BaseApp.Name() }
+func (app *Nab) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
-func (app *Gravity) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *Nab) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
 // EndBlocker application updates every end block
-func (app *Gravity) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *Nab) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
 // InitChainer application update at chain initialization
-func (app *Gravity) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *Nab) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -611,12 +611,12 @@ func (app *Gravity) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 }
 
 // LoadHeight loads a particular height
-func (app *Gravity) LoadHeight(height int64) error {
+func (app *Nab) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *Gravity) ModuleAccountAddrs() map[string]bool {
+func (app *Nab) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -627,7 +627,7 @@ func (app *Gravity) ModuleAccountAddrs() map[string]bool {
 
 // BlockedAddrs returns all the app's module account addresses that are not
 // allowed to receive external tokens.
-func (app *Gravity) BlockedAddrs() map[string]bool {
+func (app *Nab) BlockedAddrs() map[string]bool {
 	blockedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		blockedAddrs[authtypes.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
@@ -640,7 +640,7 @@ func (app *Gravity) BlockedAddrs() map[string]bool {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *Gravity) LegacyAmino() *codec.LegacyAmino {
+func (app *Nab) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
@@ -648,50 +648,50 @@ func (app *Gravity) LegacyAmino() *codec.LegacyAmino {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *Gravity) AppCodec() codec.Marshaler {
+func (app *Nab) AppCodec() codec.Marshaler {
 	return app.appCodec
 }
 
 // InterfaceRegistry returns SimApp's InterfaceRegistry
-func (app *Gravity) InterfaceRegistry() types.InterfaceRegistry {
+func (app *Nab) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Gravity) GetKey(storeKey string) *sdk.KVStoreKey {
+func (app *Nab) GetKey(storeKey string) *sdk.KVStoreKey {
 	return app.keys[storeKey]
 }
 
 // GetTKey returns the TransientStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Gravity) GetTKey(storeKey string) *sdk.TransientStoreKey {
+func (app *Nab) GetTKey(storeKey string) *sdk.TransientStoreKey {
 	return app.tKeys[storeKey]
 }
 
 // GetMemKey returns the MemStoreKey for the provided mem key.
 //
 // NOTE: This is solely used for testing purposes.
-func (app *Gravity) GetMemKey(storeKey string) *sdk.MemoryStoreKey {
+func (app *Nab) GetMemKey(storeKey string) *sdk.MemoryStoreKey {
 	return app.memKeys[storeKey]
 }
 
 // GetSubspace returns a param subspace for a given module name.
-func (app *Gravity) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *Nab) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.paramsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
 // SimulationManager implements the SimulationApp interface
-func (app *Gravity) SimulationManager() *module.SimulationManager {
+func (app *Nab) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *Gravity) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *Nab) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
@@ -717,12 +717,12 @@ func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (app *Gravity) RegisterTxService(clientCtx client.Context) {
+func (app *Nab) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
-func (app *Gravity) RegisterTendermintService(clientCtx client.Context) {
+func (app *Nab) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
 }
 
@@ -748,7 +748,7 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(gravitytypes.ModuleName)
+	paramsKeeper.Subspace(nabtypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 
 	return paramsKeeper

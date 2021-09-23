@@ -295,20 +295,20 @@ pub async fn create_parameter_change_proposal(
     let mut params_to_change = Vec::new();
     // this does not
     let gravity_address = ParamChange {
-        subspace: "gravity".to_string(),
+        subspace: "nab".to_string(),
         key: "BridgeContractAddress".to_string(),
         value: format!("\"{}\"", gravity_address),
     };
     params_to_change.push(gravity_address);
     let json_value = serde_json::to_string(&valset_reward).unwrap().to_string();
     let valset_reward = ParamChange {
-        subspace: "gravity".to_string(),
+        subspace: "nab".to_string(),
         key: "ValsetReward".to_string(),
         value: json_value.clone(),
     };
     params_to_change.push(valset_reward);
     let chain_id = ParamChange {
-        subspace: "gravity".to_string(),
+        subspace: "nab".to_string(),
         key: "BridgeChainID".to_string(),
         value: format!("\"{}\"", 1),
     };

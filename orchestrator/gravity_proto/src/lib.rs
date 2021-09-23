@@ -6,5 +6,5 @@
 
 pub use cosmos_sdk_proto;
 pub mod gravity {
-    include!("prost/gravity.v1.rs");
+    include!("prost/nab.v1.rs");
 }

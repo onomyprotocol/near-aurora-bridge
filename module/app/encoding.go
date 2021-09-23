@@ -1,13 +1,13 @@
 package app
 
 import (
-	gravityparams "github.com/althea-net/cosmos-gravity-bridge/module/app/params"
 	"github.com/cosmos/cosmos-sdk/std"
+	nabparams "github.com/onomyprotocol/near-aurora-bridge/module/app/params"
 )
 
 // MakeEncodingConfig creates an EncodingConfig for gravity.
-func MakeEncodingConfig() gravityparams.EncodingConfig {
-	encodingConfig := gravityparams.MakeEncodingConfig()
+func MakeEncodingConfig() nabparams.EncodingConfig {
+	encodingConfig := nabparams.MakeEncodingConfig()
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)

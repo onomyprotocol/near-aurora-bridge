@@ -144,7 +144,7 @@ async fn setup_batch_test(
         one_eth() * 100u64.into(),
     )
     .await;
-    let cdai_held = check_cosmos_balance("gravity", dest_cosmos_address, contact)
+    let cdai_held = check_cosmos_balance("nab", dest_cosmos_address, contact)
         .await
         .unwrap();
     let cdai_name = cdai_held.denom.clone();
