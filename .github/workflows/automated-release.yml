@@ -60,47 +60,18 @@ jobs:
           draft: false
           prerelease: true
 
-      # the 5 Rust binaries, a loop would make this much more compact
-      - name: Upload Rust client
-        id: upload-rust-release-client
+      # the Rust binaries, a loop would make this much more compact
+      - name: Upload Rust gbt
+        id: upload-rust-release-gbt
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/client
-          asset_name: client
+          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/gbt
+          asset_name: gbt
           asset_content_type: application/bin
-      - name: Upload Rust Orchestrator
-        id: upload-rust-release-orchestrator
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/orchestrator
-          asset_name: orchestrator
-          asset_content_type: application/bin
-      - name: Upload Rust Relayer
-        id: upload-rust-release-relayer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/relayer
-          asset_name: relayer
-          asset_content_type: application/bin
-      - name: Upload Rust register-delegate-keys
-        id: upload-rust-release-key-delegator
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/register-delegate-keys
-          asset_name: register-delegate-keys
-          asset_content_type: application/bin
+
       - name: Upload Rust test runner
         id: upload-rust-test-runner
         uses: actions/upload-release-asset@v1
@@ -194,45 +165,15 @@ jobs:
           cd module
           GOARCH=arm64 make
 
-      - name: Upload Rust client ARM
-        id: upload-rust-release-client-arm
+      - name: Upload Rust gbt ARM
+        id: upload-rust-release-gbt-arm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/client
-          asset_name: client-arm
-          asset_content_type: application/bin
-      - name: Upload Rust Orchestrator ARM
-        id: upload-rust-release-orchestrator-arm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/orchestrator
-          asset_name: orchestrator-arm
-          asset_content_type: application/bin
-      - name: Upload Rust Relayer ARM
-        id: upload-rust-release-relayer-arm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/relayer
-          asset_name: relayer-arm
-          asset_content_type: application/bin
-      - name: Upload Rust register-delegate-keys ARM
-        id: upload-rust-release-key-delegator-arm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/register-delegate-keys
-          asset_name: register-delegate-keys-arm
+          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/gbt
+          asset_name: gbt-arm
           asset_content_type: application/bin
 
       - name: Upload Go Release Asset ARM
