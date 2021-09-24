@@ -5,9 +5,9 @@
 * Module name -> key.go
 * Rename the package x.gravity to x.nab
 * Rename the package gravity to nab in x/nab folder
-* Rename proto/gravity -> proto/nab
+* Rename proto/nab -> proto/nab
 * Rename in proto gravity.v1 -> nab.v
-* Rename in proto module/x/gravity -> module/x/nab
+* Rename in proto module/x/nab -> module/x/nab
 * Rename in proto gravity/v1 -> nab/v1
 * Regenerate the proto -> make proto-gen
 * Replace string "gravity/ to the string "nab/ in the module
@@ -18,12 +18,11 @@
 
 TODO:
 - rename variables
-- rename docs (spec folder)
 - rename Events (or check whether it is needed)
 
 "cmd" refactoring
 
-* Rename folder cmd/gravity -> cmd/nab
+* Rename folder cmd/nab -> cmd/nab
 
 "app" refactoring
 
@@ -50,18 +49,18 @@ TODO:
 # solidity
 
 Replace /custom/gravity string to -> /custom/nab
+Replace /gravity/ -> /nab/
 
 # orchestrator
 
 Replace "gravity" string with "nab"
 Replace "gravity{}" string with "nab{}"
-Replace "/gravity.v1 with "/nab.v1   (can be substituted by normal codegen)
+Replace "/nab.v1 with "/nab.v1   (can be substituted by normal codegen)
 Open orchestrator/proto_build  and cargo run
-Replace new import in  gravity_proto/src/lib.rs  : "prost/gravity.v1.rs" -> "prost/nab.v1.rs"
+Replace new import in  gravity_proto/src/lib.rs  : "prost/nab.v1.rs" -> "prost/nab.v1.rs"
 
 ...TODO
 
-* update docs (gravity -> nab) ???
 * contrib gravity -> nab
 
 # all files
@@ -70,4 +69,10 @@ replace the strung github.com/althea-net/cosmos-gravity-bridge with the github.c
 
 # tests
 
-replace gravity-base with nab-base
+replace gravity with nab for test
+replace gravity in gitignore
+replace /nab/solidity to /nab/solidity in orchestrator/test_runner
+
+# docs
+
+replace /gravity with /nab Case sensitive !!!

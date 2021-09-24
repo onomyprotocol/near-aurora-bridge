@@ -1,7 +1,7 @@
 # Gravity parameters
 
 This document describes and advises chain operators on configuring Gravity's parameters
-the default parameters can be found in [genesis.go](/module/x/gravity/keeper/genesis.go)
+the default parameters can be found in [genesis.go](/module/x/nab/keeper/genesis.go)
 
 ## gravity_id
 
