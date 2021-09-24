@@ -8,8 +8,8 @@ ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.8-26675
 RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 # the actual source code for this repo, this **only** includes checked in files!
 # this is a bit of a pain but it does speed things up a lot
-ADD gravity.tar.gz /
+ADD nab.tar.gz /
 # build steps for all codebases in this repo, must be below the add statement
-RUN pushd /gravity/orchestrator/ && PATH=$PATH:$HOME/.cargo/bin cargo build --all --release
-RUN pushd /gravity/module/ && PATH=$PATH:/usr/local/go/bin GOPROXY=https://proxy.golang.org make && PATH=$PATH:/usr/local/go/bin make install
-RUN pushd /gravity/solidity/ && npm ci
+RUN pushd /nab/orchestrator/ && PATH=$PATH:$HOME/.cargo/bin cargo build --all --release
+RUN pushd /nab/module/ && PATH=$PATH:/usr/local/go/bin GOPROXY=https://proxy.golang.org make && PATH=$PATH:/usr/local/go/bin make install
+RUN pushd /nab/solidity/ && npm ci

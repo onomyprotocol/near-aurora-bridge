@@ -53,17 +53,17 @@ set +u
 # may be different. These two tests have different fork block heights they rely on
 if [[ $TEST_TYPE == *"ARBITRARY_LOGIC"* ]]; then
     export ALCHEMY_ID=$ALCHEMY_ID
-    pushd /gravity/solidity
+    pushd /nab/solidity
     npm run solidity_test_fork &
     popd
 elif [[ $TEST_TYPE == *"RELAY_MARKET"* ]]; then
     export ALCHEMY_ID=$ALCHEMY_ID
-    pushd /gravity/solidity
+    pushd /nab/solidity
     npm run evm_fork &
     popd
 # This starts a hardhat test environment with no pre-seeded state, faster to run, not accurate
 elif [[ ! -z "$HARDHAT" ]]; then
-    pushd /gravity/solidity
+    pushd /nab/solidity
     npm run evm &
     popd
 # This starts the Geth backed testnet with no pre-seeded in state.
@@ -73,6 +73,6 @@ elif [[ ! -z "$HARDHAT" ]]; then
 # the right number of cpu cores and Geth goes crazy consuming all the processing power, on the other hand
 # hardhat doesn't work for some tests that depend on transactions waiting for blocks, so Geth is the default
 else
-    bash /gravity/tests/container-scripts/run-eth.sh &
+    bash /nab/tests/container-scripts/run-eth.sh &
 fi
 sleep 10

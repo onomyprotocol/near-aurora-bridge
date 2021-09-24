@@ -11,6 +11,6 @@ pushd $REPOFOLDER
 
 #docker system prune -a -f
 # Build base container
-git archive --format=tar.gz -o $DOCKERFOLDER/gravity.tar.gz --prefix=gravity/ HEAD
+git archive --format=tar.gz -o $DOCKERFOLDER/nab.tar.gz --prefix=nab/ HEAD
 pushd $DOCKERFOLDER
 docker build -t nab-base .

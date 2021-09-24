@@ -8,5 +8,5 @@ set -eux
 
 # Note: This is very similar to run-eth-fork but has hardhat running at a lower (older) block height
 export ALCHEMY_ID=$1
-pushd /gravity/solidity
+pushd /nab/solidity
 npm run solidity_test_fork
