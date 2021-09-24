@@ -70,4 +70,8 @@ replace the strung github.com/althea-net/cosmos-gravity-bridge with the github.c
 
 # tests
 
-replace gravity-base with nab-base
+replace gravity with nab for test
+replace gravity in gitignore
+replace /gravity/solidity to /nab/solidity in orchestrator/test_runner
+
+# docs

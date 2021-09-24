@@ -107,9 +107,9 @@ pub async fn deploy_contracts(contact: &Contact) {
     const B: [&str; 2] = ["/solidity/contract-deployer", "/solidity/Gravity.json"];
     // the default unmoved locations for the Gravity repo
     const C: [&str; 3] = [
-        "/gravity/solidity/contract-deployer.ts",
-        "/gravity/solidity/artifacts/contracts/Gravity.sol/Gravity.json",
-        "/gravity/solidity/",
+        "/nab/solidity/contract-deployer.ts",
+        "/nab/solidity/artifacts/contracts/Gravity.sol/Gravity.json",
+        "/nab/solidity/",
     ];
     let output = if all_paths_exist(&A) || all_paths_exist(&B) {
         let paths = return_existing(A, B);
