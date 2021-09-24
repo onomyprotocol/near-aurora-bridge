@@ -123,9 +123,9 @@ async function deploy() {
     var erc20_a_path: string
     var erc20_b_path: string
     var erc20_c_path: string
-    const main_location_a = "/gravity/solidity/artifacts/contracts/TestERC20A.sol/TestERC20A.json"
-    const main_location_b = "/gravity/solidity/artifacts/contracts/TestERC20B.sol/TestERC20B.json"
-    const main_location_c = "/gravity/solidity/artifacts/contracts/TestERC20C.sol/TestERC20C.json"
+    const main_location_a = "/nab/solidity/artifacts/contracts/TestERC20A.sol/TestERC20A.json"
+    const main_location_b = "/nab/solidity/artifacts/contracts/TestERC20B.sol/TestERC20B.json"
+    const main_location_c = "/nab/solidity/artifacts/contracts/TestERC20C.sol/TestERC20C.json"
     const alt_location_1_a = "/solidity/TestERC20A.json"
     const alt_location_1_b = "/solidity/TestERC20B.json"
     const alt_location_1_c = "/solidity/TestERC20C.json"
@@ -170,7 +170,7 @@ async function deploy() {
     console.log("ERC20 deployed at Address - ", erc20TestAddress2);
 
 
-    const arbitrary_logic_path = "/gravity/solidity/artifacts/contracts/TestUniswapLiquidity.sol/TestUniswapLiquidity.json"
+    const arbitrary_logic_path = "/nab/solidity/artifacts/contracts/TestUniswapLiquidity.sol/TestUniswapLiquidity.json"
     if (fs.existsSync(arbitrary_logic_path)) { 
       const { abi, bytecode } = getContractArtifacts(arbitrary_logic_path);
       const liquidityFactory = new ethers.ContractFactory(abi, bytecode, wallet);
@@ -194,7 +194,7 @@ async function deploy() {
   let powers = [];
   let powers_sum = 0;
   // this MUST be sorted uniformly across all components of Gravity in this
-  // case we perform the sorting in module/x/gravity/keeper/types.go to the
+  // case we perform the sorting in module/x/nab/keeper/types.go to the
   // output of the endpoint should always be sorted correctly. If you're
   // having strange problems with updating the validator set you should go
   // look there.

@@ -48,7 +48,8 @@ TODO:
 
 # solidity
 
-Replace /custom/nab string to -> /custom/nab
+Replace /custom/gravity string to -> /custom/nab
+Replace /gravity/ -> /nab/
 
 # orchestrator
 
