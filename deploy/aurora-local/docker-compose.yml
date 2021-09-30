@@ -1,11 +1,54 @@
 version: '3'
 
 services:
-  onomy:
+  near:
     image: onomy/near-aurora-local:local
     restart: on-failure
     container_name: near-aurora-local
-    volumes:
-      - ./scripts:/scripts
+    # volumes:
+      # - ./scripts:/scripts
+      # - ./near_home:/root/.near
     ports:
       - 3030:3030
+  database:
+    container_name: near-aurora-relayer-database
+    image: auroraisnear/relayer-database
+    restart: on-failure
+    ports:
+      - 5432:5432
+    #volumes:
+    #  - database:/var/lib/postgresql/data
+  indexer:
+    container_name: near-aurora-relayer-indexer
+    image: auroraisnear/relayer-endpoint
+    restart: on-failure
+    init: true
+    depends_on:
+      - near
+      - database
+    environment:
+      - NEAR_ENV=localnet
+      - NODE_ENV=localnet
+    volumes:
+      - ./config:/srv/aurora/relayer/config
+    extra_hosts:
+      - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
+    entrypoint: [ "node", "lib/indexer.js" ]
+  endpoint:
+    container_name: near-aurora-relayer-endpoint
+    image: auroraisnear/relayer-endpoint
+    restart: on-failure
+    init: true
+    depends_on:
+      - near
+      - database
+    environment:
+      - NEAR_ENV=localnet
+      - NODE_ENV=localnet
+    ports:
+      - 8545:8545
+    volumes:
+      - ./config:/srv/aurora/relayer/config
+      # - ./near_home:/.near
+    entrypoint: [ "node", "lib/index.js" ]
+ 
