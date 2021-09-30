@@ -30,4 +30,7 @@ ADD https://github.com/aurora-is-near/aurora-engine/releases/download/latest/mai
 COPY scripts /scripts
 RUN chmod +x /scripts/run.sh
 
+# coly pregenerate near home
+COPY near_home /root/.near
+
 ENTRYPOINT /scripts/run.sh
