@@ -1,0 +1,5 @@
+version: "3.3"
+services:
+  near-node:
+    image: onomy/near-aurora-local:local-bridge
+    network_mode: host
