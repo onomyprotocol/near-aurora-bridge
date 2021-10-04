@@ -78,5 +78,5 @@ RUN git clone https://github.com/aurora-is-near/rainbow-bridge .
 RUN git reset --hard 656da3e8ce3af6914749d1488d8b963b4ca52346
 RUN yarn
 RUN sh -c "/scripts/docker_prepare.sh"
-
+RUN chmod 777 /scripts/docker_start.sh
 CMD ["sh", "-c", "/scripts/docker_start.sh"]
