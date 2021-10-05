@@ -25,6 +25,7 @@ mod keys;
 mod orchestrator;
 mod relayer;
 mod utils;
+mod get_gravity_test;
 
 #[actix_rt::main]
 async fn main() {

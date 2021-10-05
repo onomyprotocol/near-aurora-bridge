@@ -22,7 +22,7 @@ dependencies = [
  "parking_lot",
  "pin-project-lite 0.2.7",
  "smallvec",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tokio-util 0.6.7",
 ]
 
@@ -54,7 +54,7 @@ dependencies = [
  "futures-sink",
  "log",
  "pin-project-lite 0.2.7",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tokio-util 0.6.7",
 ]
 
@@ -166,7 +166,7 @@ dependencies = [
  "sha-1",
  "smallvec",
  "time 0.2.27",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "zstd",
 ]
 
@@ -226,7 +226,7 @@ checksum = "bc7d7cd957c9ed92288a7c3c96af81fa5291f65247a76a34dac7b6af74e52ba0"
 dependencies = [
  "actix-macros 0.2.1",
  "futures-core",
- "tokio 1.8.1",
+ "tokio 1.12.0",
 ]
 
 [[package]]
@@ -838,7 +838,7 @@ dependencies = [
  "rand 0.8.4",
  "serde",
  "sha3",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tonic",
  "web30",
 ]
@@ -918,7 +918,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tendermint-proto",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tonic",
  "unicode-normalization",
 ]
@@ -1233,6 +1233,7 @@ dependencies = [
  "dirs",
  "env_logger",
  "ethereum_gravity",
+ "futures",
  "gravity_proto",
  "gravity_utils",
  "lazy_static",
@@ -1243,7 +1244,7 @@ dependencies = [
  "relayer",
  "serde",
  "serde_derive",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "toml",
  "url",
  "web30",
@@ -1312,7 +1313,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "sha3",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tonic",
  "url",
  "web30",
@@ -1352,7 +1353,7 @@ dependencies = [
  "http",
  "indexmap",
  "slab",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tokio-util 0.6.7",
  "tracing",
 ]
@@ -1460,7 +1461,7 @@ dependencies = [
  "itoa",
  "pin-project-lite 0.2.7",
  "socket2 0.4.0",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tower-service",
  "tracing",
  "want",
@@ -2003,7 +2004,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tonic",
  "web30",
 ]
@@ -2452,7 +2453,7 @@ dependencies = [
  "openssl-probe",
  "serde",
  "serde_derive",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tonic",
  "web30",
 ]
@@ -2886,7 +2887,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tonic",
  "url",
  "web30",
@@ -3015,15 +3016,16 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.8.1"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98c8b05dc14c75ea83d63dd391100353789f5f24b8b3866542a5e85c8be8e985"
+checksum = "c2c2416fdedca8443ae44b4527de1ea633af61d8f7169ffa6e72c5b53d24efcc"
 dependencies = [
  "autocfg",
  "bytes 1.0.1",
  "libc",
  "memchr",
  "mio 0.7.13",
+ "num_cpus",
  "once_cell",
  "parking_lot",
  "pin-project-lite 0.2.7",
@@ -3062,7 +3064,7 @@ dependencies = [
  "futures",
  "openssl",
  "openssl-sys",
- "tokio 1.8.1",
+ "tokio 1.12.0",
 ]
 
 [[package]]
@@ -3073,7 +3075,7 @@ checksum = "7b2f3f698253f03119ac0102beaa64f67a67e08074d03a22d18784104543727f"
 dependencies = [
  "futures-core",
  "pin-project-lite 0.2.7",
- "tokio 1.8.1",
+ "tokio 1.12.0",
 ]
 
 [[package]]
@@ -3101,7 +3103,7 @@ dependencies = [
  "futures-sink",
  "log",
  "pin-project-lite 0.2.7",
- "tokio 1.8.1",
+ "tokio 1.12.0",
 ]
 
 [[package]]
@@ -3133,7 +3135,7 @@ dependencies = [
  "pin-project 1.0.7",
  "prost",
  "prost-derive",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tokio-stream",
  "tokio-util 0.6.7",
  "tower",
@@ -3166,7 +3168,7 @@ dependencies = [
  "pin-project 1.0.7",
  "rand 0.8.4",
  "slab",
- "tokio 1.8.1",
+ "tokio 1.12.0",
  "tokio-stream",
  "tokio-util 0.6.7",
  "tower-layer",
@@ -3461,7 +3463,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "tokio 1.8.1",
+ "tokio 1.12.0",
 ]
 
 [[package]]
