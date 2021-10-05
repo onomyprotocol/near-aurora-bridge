@@ -2,6 +2,7 @@ version: "3.3"
 services:
   near:
     image: onomy/near-aurora-local:local-bridge
+    container_name: near-aurora-local-bridge
     ports:
       - 3030:3030
   database:
