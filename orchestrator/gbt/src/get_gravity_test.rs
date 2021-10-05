@@ -24,10 +24,10 @@ fn test_get_gravity_id() {
         let web3 = Web3::new(&url, Duration::from_secs(300));
 
         let block = web3.eth_block_number().await;
-        if block.is_err() {
-            error!("Failed to get latest block!, {:?}", block);
-        }
         println!("eth_block_number {}", block.unwrap());
+
+        let latest_block = web3.eth_get_latest_block().await;
+        println!("eth_get_latest_block {:?}", latest_block.unwrap());
 
         let caller_address: EthAddress = caller_address_string
             .parse()
@@ -38,9 +38,6 @@ fn test_get_gravity_id() {
             .unwrap();
 
         let gravity_id = get_gravity_id(gravity_contract_address, caller_address, &web3).await;
-        if gravity_id.is_err() {
-            error!("Failed to get gravity id!, {:?}", gravity_id);
-        }
         println!("gravity_id {}", gravity_id.unwrap());
     });
 }
