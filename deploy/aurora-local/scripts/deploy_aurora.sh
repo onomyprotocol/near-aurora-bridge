@@ -34,6 +34,3 @@ echo "Inspection the aurora node"
 aurora get-version --engine $AURORA_ACCOUNT
 aurora get-owner --engine $AURORA_ACCOUNT
 aurora get-chain-id --engine $AURORA_ACCOUNT
-
-cd  ~/.nearup/logs/localnet/
-tail -f node0.log  node1.log  node2.log  node3.log

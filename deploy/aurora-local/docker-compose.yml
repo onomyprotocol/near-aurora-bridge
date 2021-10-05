@@ -1,13 +1,8 @@
-version: '3'
-
+version: "3.3"
 services:
   near:
-    image: onomy/near-aurora-local:local
-    restart: on-failure
-    container_name: near-aurora-local
-    # volumes:
-      # - ./scripts:/scripts
-      # - ./near_home:/root/.near
+    image: onomy/near-aurora-local:local-bridge
+    container_name: near-aurora-local-bridge
     ports:
       - 3030:3030
   database:
@@ -51,4 +46,3 @@ services:
       - ./config:/srv/aurora/relayer/config
       # - ./near_home:/.near
     entrypoint: [ "node", "lib/index.js" ]
- 
