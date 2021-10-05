@@ -1,7 +1,6 @@
 use clarity::Address as EthAddress;
 use ethereum_gravity::utils::get_gravity_id;
-use std::{cmp::min, time::Duration};
-use tokio::runtime::Runtime;
+use std::{time::Duration};
 use web30::client::Web3;
 
 #[test]
