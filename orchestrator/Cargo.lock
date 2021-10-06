@@ -3447,7 +3447,7 @@ checksum = "d7cff876b8f18eed75a66cf49b65e7f967cb354a7aa16003fb55dbfd25b44b4f"
 
 [[package]]
 name = "web30"
-version = "0.17.1"
+version = "0.15.2"
 dependencies = [
  "actix",
  "awc 3.0.0-beta.8",
