@@ -2,9 +2,9 @@ name: Integration tests
 
 on:
   push:
-    branches: [master, main, dev]
+    branches: [master, main, dev, web30-replace]
   pull_request:
-    branches: [master, main, dev]
+    branches: [master, main, dev, web30-replace]
 
 jobs:
   happy-path-hardhat:
