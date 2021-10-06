@@ -129,9 +129,9 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "3.0.0-beta.8"
+version = "3.0.0-beta.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cd16d6b846983ffabfd081e1a67abd7698094fcbe7b3d9bcf1acbc6f546a516"
+checksum = "dd38a862fa7fead2b47ee55e550982aba583ebc7365ccf0155b49934ad6f16f9"
 dependencies = [
  "actix-codec 0.4.0",
  "actix-rt 2.2.0",
@@ -556,12 +556,12 @@ dependencies = [
 
 [[package]]
 name = "awc"
-version = "3.0.0-beta.7"
+version = "3.0.0-beta.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "364ef81705bf38403a3c3da4fab9eeec1e1503cd72dd6cd7c4259d2a6b08aa98"
+checksum = "5b276021b5aa1df71969acc8adc03973e4fc7d00bba0cbb6338e6f8ad0d7a3c2"
 dependencies = [
  "actix-codec 0.4.0",
- "actix-http 3.0.0-beta.8",
+ "actix-http 3.0.0-beta.10",
  "actix-rt 2.2.0",
  "actix-service 2.0.0",
  "base64",
@@ -1426,9 +1426,9 @@ dependencies = [
 
 [[package]]
 name = "httparse"
-version = "1.4.1"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3a87b616e37e93c22fb19bcd386f02f3af5ea98a25670ad0fce773de23c5e68"
+checksum = "acd94fdbe1d4ff688b67b04eee2e17bd50995534a61539e45adfefb45e5e5503"
 
 [[package]]
 name = "httpdate"
@@ -3447,12 +3447,12 @@ checksum = "d7cff876b8f18eed75a66cf49b65e7f967cb354a7aa16003fb55dbfd25b44b4f"
 
 [[package]]
 name = "web30"
-version = "0.15.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "363b1e78e1d6e63c7e45a77804432a8f46cdb1fe9e2905e23df9d2434b66dac0"
+version = "0.17.1"
 dependencies = [
- "awc 3.0.0-beta.7",
+ "actix",
+ "awc 3.0.0-beta.8",
  "clarity",
+ "env_logger",
  "futures",
  "lazy_static",
  "log",
