@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  nab:
+    image: onomy/near-aurora-bridge-single-node-runner-testnet:local
+    restart: on-failure
+    container_name: near-aurora-bridge-single-node-runner-testnet
+    volumes:
+      # uncomment to pin nab dir
+      # - ./data:/home/nab/nab/data
+      # uncomment to update nab config in runtime
+      - ./scripts:/root/home/scripts
+      # uncomment to update deployer in runtime
+      # - ../../solidity/contract-deployer.ts:/go/src/github.com/onomyprotocol/near-aurora-bridge/solidity/contract-deployer.ts
+      # uncomment to update nab config in runtime
+      # - ./nab_home:/root/home/nab/nab/.
+    ports:
+      # nab
+      - 26656:26656
+      - 26657:26657
+      - 1317:1317
+      - 61278:61278
+      - 9090:9090
+      # ethereum
+      - 8545:8545
