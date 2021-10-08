@@ -23,7 +23,7 @@ pub async fn get_last_checked_block(
     web3: &Web3,
 ) -> Uint256 {
     let mut grpc_client = grpc_client;
-    const BLOCKS_TO_SEARCH: u128 = 5_000u128;
+    const BLOCKS_TO_SEARCH: u128 = 50_000u128;
 
     let latest_block = get_block_number_with_retry(web3).await;
     let mut last_event_nonce: Uint256 =
@@ -41,10 +41,11 @@ pub async fn get_last_checked_block(
     let mut current_block: Uint256 = latest_block.clone();
 
     while current_block.clone() > 0u8.into() {
-        info!(
+        println!(
             "Oracle is resyncing, looking back into the history to find our last event nonce {}, on block {}",
             last_event_nonce, current_block
         );
+
         let end_search = if current_block.clone() < BLOCKS_TO_SEARCH.into() {
             0u8.into()
         } else {
@@ -111,6 +112,22 @@ pub async fn get_last_checked_block(
         let mut valset_events = valset_events.unwrap();
         let erc20_deployed_events = erc20_deployed_events.unwrap();
         let logic_call_executed_events = logic_call_executed_events.unwrap();
+
+        if !batch_events.is_empty()
+            || !send_to_cosmos_events.is_empty()
+            || !valset_events.is_empty()
+            || !erc20_deployed_events.is_empty()
+            || !logic_call_executed_events.is_empty() {
+
+            println!("not empty_block: {}", current_block);
+            println!("batch_events: {:?}", batch_events);
+            println!("send_to_cosmos_events: {:?}", send_to_cosmos_events);
+            println!("valset_events: {:?}", valset_events);
+            println!("erc20_deployed_events: {:?}", erc20_deployed_events);
+            println!("logic_call_executed_events: {:?}", logic_call_executed_events);
+
+            panic!("exit");
+        }
 
         // look for and return the block number of the event last seen on the Cosmos chain
         // then we will play events from that block (including that block, just in case
