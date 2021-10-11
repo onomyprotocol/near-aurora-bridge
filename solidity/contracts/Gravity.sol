@@ -571,6 +571,59 @@ contract Gravity is ReentrancyGuard {
 		);
 	}
 
+	//	initContractWorkaround is a temp init func to call instead of constructor.
+	function initContractWorkaround(
+	// A unique identifier for this gravity instance to use in signatures
+		bytes32 _gravityId,
+	// How much voting power is needed to approve operations
+		uint256 _powerThreshold,
+	// The validator set, not in valset args format since many of it's
+	// arguments would never be used in this case
+		address[] memory _validators,
+		uint256[] memory _powers
+	) public {
+		// CHECKS
+
+		// Check that validators, powers, and signatures (v,r,s) set is well-formed
+		require(_validators.length == _powers.length, "Malformed current validator set");
+
+		// Check cumulative power to ensure the contract has sufficient power to actually
+		// pass a vote
+		uint256 cumulativePower = 0;
+		for (uint256 i = 0; i < _powers.length; i++) {
+			cumulativePower = cumulativePower + _powers[i];
+			if (cumulativePower > _powerThreshold) {
+				break;
+			}
+		}
+		require(
+			cumulativePower > _powerThreshold,
+			"Submitted validator set signatures do not have enough power."
+		);
+
+		ValsetArgs memory _valset;
+		_valset = ValsetArgs(_validators, _powers, 0, 0, address(0));
+
+		bytes32 newCheckpoint = makeCheckpoint(_valset, _gravityId);
+
+		// ACTIONS
+
+		state_gravityId = _gravityId;
+		state_powerThreshold = _powerThreshold;
+		state_lastValsetCheckpoint = newCheckpoint;
+
+		// LOGS
+
+		emit ValsetUpdatedEvent(
+			state_lastValsetNonce,
+			state_lastEventNonce,
+			0,
+			address(0),
+			_validators,
+			_powers
+		);
+	}
+
 	constructor(
 		// A unique identifier for this gravity instance to use in signatures
 		bytes32 _gravityId,

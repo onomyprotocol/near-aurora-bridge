@@ -228,6 +228,16 @@ async function deploy() {
 
   await gravity.deployed();
   console.log("Gravity deployed at Address - ", gravity.address);
+
+  console.log("post init gravity (initContractWorkaround) at Address - ", gravity.address);
+  await gravity.initContractWorkaround(
+      gravityId,
+      vote_power,
+      eth_addresses,
+      powers,
+      overrides
+  )
+
   await submitGravityAddress(gravity.address);
 }
 
