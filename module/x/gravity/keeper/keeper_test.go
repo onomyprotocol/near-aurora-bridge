@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -213,4 +214,46 @@ func TestLastSlashedValsetNonce(t *testing.T) {
 	unslashedValsets = k.GetUnSlashedValsets(ctx, heightDiff-6)
 	assert.Equal(t, len(unslashedValsets), 6)
 	fmt.Println("unslashedValsetsRange", unslashedValsets)
+}
+
+func TestWithEthDenomSwapper(t *testing.T) {
+	type args struct {
+		denom string
+		from  string
+		to    string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "replace_a_to_b",
+			args: args{
+				denom: "a",
+				from:  "a",
+				to:    "b",
+			},
+			want: "b",
+		},
+		{
+			name: "skip_swap_and_return_c",
+			args: args{
+				denom: "c",
+				from:  "a",
+				to:    "b",
+			},
+			want: "c",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			keeper := Keeper{}
+			WithEthDenomSwapper(tt.args.from, tt.args.to)(&keeper)
+			got := keeper.ethDenomSwapper(tt.args.denom)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("WithEthDenomSwapper() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

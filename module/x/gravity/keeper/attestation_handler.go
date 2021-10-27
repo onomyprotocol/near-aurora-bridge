@@ -36,6 +36,9 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, claim
 				return sdkerrors.Wrap(err, "transfer vouchers")
 			}
 		} else {
+			if a.keeper.ethDenomSwapper != nil {
+				denom = a.keeper.ethDenomSwapper(denom)
+			}
 			// If it is not cosmos originated, mint the coins (aka vouchers)
 			coins := sdk.Coins{sdk.NewCoin(denom, claim.Amount)}
 
