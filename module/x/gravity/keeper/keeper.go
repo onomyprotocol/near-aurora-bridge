@@ -24,39 +24,13 @@ type Keeper struct {
 	bankKeeper     types.BankKeeper
 	SlashingKeeper types.SlashingKeeper
 
-	// function that is used in attestation handler to swap denoms.
-	// this function is used in onomy to swap wNOM to anom.
-	ethDenomSwapper func(string) string
-
 	AttestationHandler interface {
 		Handle(sdk.Context, types.Attestation, types.EthereumClaim) error
 	}
 }
 
-type Option func(*Keeper)
-
-// WithEthDenomSwapper keeper option that sets swap from/to demons swap func.
-func WithEthDenomSwapper(from, to string) func(*Keeper) {
-	return func(k *Keeper) {
-		k.ethDenomSwapper = func(denom string) string {
-			if denom == from {
-				return to
-			}
-			return denom
-		}
-	}
-}
-
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(
-	cdc codec.BinaryMarshaler,
-	storeKey sdk.StoreKey,
-	paramSpace paramtypes.Subspace,
-	stakingKeeper types.StakingKeeper,
-	bankKeeper types.BankKeeper,
-	slashingKeeper types.SlashingKeeper,
-	opts ...Option,
-) Keeper {
+func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, slashingKeeper types.SlashingKeeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -70,10 +44,6 @@ func NewKeeper(
 		bankKeeper:         bankKeeper,
 		SlashingKeeper:     slashingKeeper,
 		AttestationHandler: nil,
-	}
-	// apply opts
-	for _, opt := range opts {
-		opt(&k)
 	}
 	k.AttestationHandler = AttestationHandler{
 		keeper:     k,

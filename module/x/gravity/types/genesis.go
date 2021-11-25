@@ -66,6 +66,9 @@ var (
 	// to a relayer when they relay a valset
 	ParamStoreValsetRewardAmount = []byte("ValsetReward")
 
+	// ParamStoreErc20ToDenomPermanentSwap the key of Erc20ToDenomPair for store.
+	ParamStoreErc20ToDenomPermanentSwap = []byte("Erc20ToDenomPermanentSwap")
+
 	// Ensure that params implements the proper interface
 	_ paramtypes.ParamSet = &Params{
 		GravityId:                    "",
@@ -87,6 +90,7 @@ var (
 			Denom:  "",
 			Amount: sdk.Int{},
 		},
+		Erc20ToDenomPermanentSwap: ERC20ToDenom{},
 	}
 )
 
@@ -137,6 +141,7 @@ func DefaultParams() *Params {
 		UnbondSlashingValsetsWindow:  10000,
 		SlashFractionBadEthSignature: sdk.NewDec(1).Quo(sdk.NewDec(1000)),
 		ValsetReward:                 sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
+		Erc20ToDenomPermanentSwap:    ERC20ToDenom{},
 	}
 }
 
@@ -190,6 +195,9 @@ func (p Params) ValidateBasic() error {
 	if err := validateValsetRewardAmount(p.ValsetReward); err != nil {
 		return sdkerrors.Wrap(err, "ValsetReward amount")
 	}
+	if err := validateErc20ToDenomPermanentSwap(p.Erc20ToDenomPermanentSwap); err != nil {
+		return sdkerrors.Wrap(err, "Erc20ToDenomPermanentSwap")
+	}
 
 	return nil
 }
@@ -216,6 +224,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 			Denom:  "",
 			Amount: sdk.Int{},
 		},
+		Erc20ToDenomPermanentSwap: ERC20ToDenom{},
 	})
 }
 
@@ -238,6 +247,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreUnbondSlashingValsetsWindow, &p.UnbondSlashingValsetsWindow, validateUnbondSlashingValsetsWindow),
 		paramtypes.NewParamSetPair(ParamStoreSlashFractionBadEthSignature, &p.SlashFractionBadEthSignature, validateSlashFractionBadEthSignature),
 		paramtypes.NewParamSetPair(ParamStoreValsetRewardAmount, &p.ValsetReward, validateValsetRewardAmount),
+		paramtypes.NewParamSetPair(ParamStoreErc20ToDenomPermanentSwap, &p.Erc20ToDenomPermanentSwap, validateErc20ToDenomPermanentSwap),
 	}
 }
 
@@ -386,6 +396,17 @@ func validateSlashFractionBadEthSignature(i interface{}) error {
 func validateValsetRewardAmount(i interface{}) error {
 	if _, ok := i.(sdk.Coin); !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	return nil
+}
+
+func validateErc20ToDenomPermanentSwap(i interface{}) error {
+	if _, ok := i.(ERC20ToDenom); !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if (i.(ERC20ToDenom).Erc20 == "" && i.(ERC20ToDenom).Denom != "") ||
+		(i.(ERC20ToDenom).Erc20 != "" && i.(ERC20ToDenom).Denom == "") {
+		return fmt.Errorf("invalid parameter type: %T, len must be 0 or 2, current value: %+v", i, i)
 	}
 	return nil
 }
