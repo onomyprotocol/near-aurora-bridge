@@ -15,7 +15,7 @@ chai.use(solidity);
 const { expect } = chai;
 
 
-async function runTest(opts: {}) {
+async function runNormalTest(opts: {}) {
 
 
   // Prep and deploy contract
@@ -72,8 +72,65 @@ async function runTest(opts: {}) {
   expect((await gravity.functions.state_lastEventNonce())[0]).to.equal(3);
 }
 
+async function runSendAndBurnWnomTest(opts: {}) {
+
+  // Prep and deploy contract
+  // ========================
+  const signers = await ethers.getSigners();
+  const gravityId = ethers.utils.formatBytes32String("foo");
+  // This is the power distribution on the Cosmos hub as of 7/14/2020
+  let powers = examplePowers();
+  let validators = signers.slice(0, powers.length);
+  const powerThreshold = 6666;
+  const {
+    gravity,
+    testERC20,
+    checkpoint: deployCheckpoint,
+    testERC20WNOM,
+  } = await deployContracts(gravityId, powerThreshold, validators, powers);
+
+  // Transfer out to Cosmos, locking coins
+  // =====================================
+  await testERC20WNOM.functions.approve(gravity.address, 1000);
+  await expect(gravity.functions.sendToCosmos(
+      testERC20WNOM.address,
+      ethers.utils.formatBytes32String("myCosmosAddress"),
+      1000
+  )).to.emit(gravity, 'SendToCosmosEvent').withArgs(
+      testERC20WNOM.address,
+      await signers[0].getAddress(),
+      ethers.utils.formatBytes32String("myCosmosAddress"),
+      1000,
+      2
+  );
+
+  expect((await testERC20WNOM.functions.balanceOf(gravity.address))[0]).to.equal(0);
+  expect((await gravity.functions.state_lastEventNonce())[0]).to.equal(2);
+
+  // Do it again
+  // =====================================
+  await testERC20WNOM.functions.approve(gravity.address, 1000);
+  await expect(gravity.functions.sendToCosmos(
+      testERC20WNOM.address,
+      ethers.utils.formatBytes32String("myCosmosAddress"),
+      1000
+  )).to.emit(gravity, 'SendToCosmosEvent').withArgs(
+      testERC20WNOM.address,
+      await signers[0].getAddress(),
+      ethers.utils.formatBytes32String("myCosmosAddress"),
+      1000,
+      3
+  );
+
+  expect((await testERC20WNOM.functions.balanceOf(gravity.address))[0]).to.equal(0);
+  expect((await gravity.functions.state_lastEventNonce())[0]).to.equal(3);
+}
+
 describe("sendToCosmos tests", function () {
-  it("works right", async function () {
-    await runTest({})
+  it("normal sendToCosmos", async function () {
+    await runNormalTest({})
+  });
+  it("sendToCosmos and burn wnom", async function () {
+    await runSendAndBurnWnomTest({})
   });
 });

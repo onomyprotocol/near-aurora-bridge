@@ -52,6 +52,7 @@ contract Gravity is ReentrancyGuard {
 
 	// Address for wNOM
     address public wNomAddress;
+    IERC20Burnable private wNomBurner;
 
 	// These are updated often
 	bytes32 public state_lastValsetCheckpoint;
@@ -547,9 +548,9 @@ contract Gravity is ReentrancyGuard {
 		uint256 _amount
 	) public nonReentrant {
 		IERC20(_tokenContract).safeTransferFrom(msg.sender, address(this), _amount);
-		
+
 		// If Token is wNOM then Burn it
-		if(_tokenContract = wNomAddress) {
+		if(_tokenContract == wNomAddress) {
 			wNomBurner.burn(_amount);
 		}
 
