@@ -22,6 +22,8 @@ const args = commandLineArgs([
   { name: "contract", type: String },
   // test mode, if enabled this script deploys three ERC20 contracts for testing
   { name: "test-mode", type: String },
+  // the wnom ERC20 address which will be used for burning in the send to cosmos Gravity contracts function
+  {name: "wnom-address", type: String},
 ]);
 
 // 4. Now, the deployer script hits a full node api, gets the Eth signatures of the valset from the latest block, and deploys the Ethereum contract.
@@ -171,7 +173,7 @@ async function deploy() {
 
 
     const arbitrary_logic_path = "/gravity/solidity/artifacts/contracts/TestUniswapLiquidity.sol/TestUniswapLiquidity.json"
-    if (fs.existsSync(arbitrary_logic_path)) { 
+    if (fs.existsSync(arbitrary_logic_path)) {
       const { abi, bytecode } = getContractArtifacts(arbitrary_logic_path);
       const liquidityFactory = new ethers.ContractFactory(abi, bytecode, wallet);
       const testUniswapLiquidity = (await liquidityFactory.deploy(erc20TestAddress)) as TestUniswapLiquidity;
@@ -216,6 +218,13 @@ async function deploy() {
     exit(1)
   }
 
+  let wnomAddressArg = args["wnom-address"]
+  if (wnomAddressArg == null) {
+    wnomAddressArg = "0x0000000000000000000000000000000000000000"
+  }
+
+  let wnomAddress = ethers.utils.getAddress(wnomAddressArg)
+
   const gravity = (await factory.deploy(
     // todo generate this randomly at deployment time that way we can avoid
     // anything but intentional conflicts
@@ -223,6 +232,7 @@ async function deploy() {
     vote_power,
     eth_addresses,
     powers,
+    wnomAddress,
     overrides
   )) as Gravity;
 

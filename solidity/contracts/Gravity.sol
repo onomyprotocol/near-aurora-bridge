@@ -9,6 +9,10 @@ import "./CosmosToken.sol";
 
 pragma experimental ABIEncoderV2;
 
+interface IERC20Burnable {
+    function burn(uint256 amount) external;
+}
+
 // This is being used purely to avoid stack too deep errors
 struct LogicCallArgs {
 	// Transfers out to the logic contract
@@ -45,6 +49,10 @@ struct ValsetArgs {
 contract Gravity is ReentrancyGuard {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
+
+	// Address for wNOM
+    address public wNomAddress;
+    IERC20Burnable private wNomBurner;
 
 	// These are updated often
 	bytes32 public state_lastValsetCheckpoint;
@@ -540,6 +548,12 @@ contract Gravity is ReentrancyGuard {
 		uint256 _amount
 	) public nonReentrant {
 		IERC20(_tokenContract).safeTransferFrom(msg.sender, address(this), _amount);
+
+		// If Token is wNOM then Burn it
+		if(_tokenContract == wNomAddress) {
+			wNomBurner.burn(_amount);
+		}
+
 		state_lastEventNonce = state_lastEventNonce.add(1);
 		emit SendToCosmosEvent(
 			_tokenContract,
@@ -579,8 +593,13 @@ contract Gravity is ReentrancyGuard {
 		// The validator set, not in valset args format since many of it's
 		// arguments would never be used in this case
 		address[] memory _validators,
-		uint256[] memory _powers
+		uint256[] memory _powers,
+		address _wNomAddress
 	) public {
+		// Initialize NOM burner
+		wNomAddress = _wNomAddress;
+        wNomBurner = IERC20Burnable(_wNomAddress);
+
 		// CHECKS
 
 		// Check that validators, powers, and signatures (v,r,s) set is well-formed
