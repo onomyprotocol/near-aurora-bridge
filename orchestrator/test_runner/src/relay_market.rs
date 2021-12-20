@@ -4,7 +4,10 @@
 use std::time::{Duration, Instant};
 
 use crate::happy_path::test_erc20_deposit;
-use crate::utils::{check_cosmos_balance, send_one_eth, start_orchestrators, ValidatorKeys};
+use crate::utils::{
+    check_cosmos_balance, create_market_test_config, send_one_eth, start_orchestrators,
+    ValidatorKeys,
+};
 use crate::MINER_PRIVATE_KEY;
 use crate::TOTAL_TIMEOUT;
 use crate::{one_eth, MINER_ADDRESS};
@@ -18,7 +21,6 @@ use deep_space::private_key::PrivateKey as CosmosPrivateKey;
 use deep_space::{Address, Contact};
 use ethereum_gravity::utils::get_tx_batch_nonce;
 use gravity_proto::gravity::query_client::QueryClient as GravityQueryClient;
-use gravity_utils::types::GravityBridgeToolsConfig;
 use rand::Rng;
 use tokio::time::sleep as delay_for;
 use tonic::transport::Channel;
@@ -44,8 +46,9 @@ async fn test_batches(
     gravity_address: EthAddress,
 ) {
     // Start Orchestrators
-    let default_config = GravityBridgeToolsConfig::default();
-    start_orchestrators(keys.clone(), gravity_address, false, default_config).await;
+    let relay_market_config = create_market_test_config();
+    start_orchestrators(keys.clone(), gravity_address, false, relay_market_config).await;
+
     test_good_batch(
         web30,
         grpc_client,
