@@ -98,7 +98,7 @@ pub async fn send_valset_confirms(
     gravity_id: String,
 ) -> Result<TxResponse, CosmosGrpcError> {
     let our_address = private_key.to_address(&contact.get_prefix()).unwrap();
-    let our_eth_address = eth_private_key.to_public_key().unwrap();
+    let our_eth_address = eth_private_key.to_address();
 
     let fee = Fee {
         amount: vec![fee],
@@ -109,9 +109,9 @@ pub async fn send_valset_confirms(
 
     let mut messages = Vec::new();
 
-    for valset in valsets {
+    for valset in &valsets {
         trace!("Submitting signature for valset {:?}", valset);
-        let message = encode_valset_confirm(gravity_id.clone(), valset.clone());
+        let message = encode_valset_confirm(gravity_id.clone(), valset);
         let eth_signature = eth_private_key.sign_ethereum_msg(&message);
         trace!(
             "Sending valset update with address {} and sig {}",
@@ -149,7 +149,7 @@ pub async fn send_batch_confirm(
     gravity_id: String,
 ) -> Result<TxResponse, CosmosGrpcError> {
     let our_address = private_key.to_address(&contact.get_prefix()).unwrap();
-    let our_eth_address = eth_private_key.to_public_key().unwrap();
+    let our_eth_address = eth_private_key.to_address();
 
     let fee = Fee {
         amount: vec![fee],
@@ -160,9 +160,9 @@ pub async fn send_batch_confirm(
 
     let mut messages = Vec::new();
 
-    for batch in transaction_batches {
+    for batch in &transaction_batches {
         trace!("Submitting signature for batch {:?}", batch);
-        let message = encode_tx_batch_confirm(gravity_id.clone(), batch.clone());
+        let message = encode_tx_batch_confirm(gravity_id.clone(), batch);
         let eth_signature = eth_private_key.sign_ethereum_msg(&message);
         trace!(
             "Sending batch update with address {} and sig {}",
@@ -201,7 +201,7 @@ pub async fn send_logic_call_confirm(
     gravity_id: String,
 ) -> Result<TxResponse, CosmosGrpcError> {
     let our_address = private_key.to_address(&contact.get_prefix()).unwrap();
-    let our_eth_address = eth_private_key.to_public_key().unwrap();
+    let our_eth_address = eth_private_key.to_address();
 
     let fee = Fee {
         amount: vec![fee],

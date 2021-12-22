@@ -41,9 +41,8 @@ pub async fn get_valset(
     let response = client
         .valset_request(QueryValsetRequestRequest { nonce })
         .await?;
-    let valset = response.into_inner().valset;
-    let valset = valset.map(|v| v.into());
-    Ok(valset)
+
+    Ok(response.into_inner().valset.map(Into::into))
 }
 
 /// get the current valset. You should never sign this valset
@@ -78,10 +77,13 @@ pub async fn get_oldest_unsigned_valsets(
             address: address.to_bech32(prefix).unwrap(),
         })
         .await?;
-    let valsets = response.into_inner().valsets;
-    // convert from proto valset type to rust valset type
-    let valsets = valsets.iter().map(|v| v.into()).collect();
-    Ok(valsets)
+
+    Ok(response
+        .into_inner()
+        .valsets
+        .iter()
+        .map(Into::into)
+        .collect())
 }
 
 /// this input views the last five valset requests that have been made, useful if you're
@@ -92,8 +94,13 @@ pub async fn get_latest_valsets(
     let response = client
         .last_valset_requests(QueryLastValsetRequestsRequest {})
         .await?;
-    let valsets = response.into_inner().valsets;
-    Ok(valsets.iter().map(|v| v.into()).collect())
+
+    Ok(response
+        .into_inner()
+        .valsets
+        .iter()
+        .map(Into::into)
+        .collect())
 }
 
 /// get all valset confirmations for a given nonce
@@ -159,11 +166,11 @@ pub async fn get_transaction_batch_signatures(
         })
         .await?;
     let batch_confirms = response.into_inner().confirms;
-    let mut out = Vec::new();
-    for confirm in batch_confirms {
-        out.push(BatchConfirmResponse::try_from(confirm)?)
-    }
-    Ok(out)
+
+    batch_confirms
+        .into_iter()
+        .map(BatchConfirmResponse::try_from)
+        .collect()
 }
 
 /// Gets the last event nonce that a given validator has attested to, this lets us
@@ -178,6 +185,7 @@ pub async fn get_last_event_nonce_for_validator(
             address: address.to_bech32(prefix).unwrap(),
         })
         .await?;
+
     Ok(response.into_inner().event_nonce)
 }
 
@@ -188,12 +196,13 @@ pub async fn get_latest_logic_calls(
     let response = client
         .outgoing_logic_calls(QueryOutgoingLogicCallsRequest {})
         .await?;
-    let calls = response.into_inner().calls;
-    let mut out = Vec::new();
-    for call in calls {
-        out.push(LogicCall::try_from(call)?);
-    }
-    Ok(out)
+
+    response
+        .into_inner()
+        .calls
+        .into_iter()
+        .map(LogicCall::try_from)
+        .collect()
 }
 
 pub async fn get_logic_call_signatures(
@@ -207,12 +216,13 @@ pub async fn get_logic_call_signatures(
             invalidation_nonce,
         })
         .await?;
-    let call_confirms = response.into_inner().confirms;
-    let mut out = Vec::new();
-    for confirm in call_confirms {
-        out.push(LogicCallConfirmResponse::try_from(confirm)?)
-    }
-    Ok(out)
+
+    response
+        .into_inner()
+        .confirms
+        .into_iter()
+        .map(LogicCallConfirmResponse::try_from)
+        .collect()
 }
 
 pub async fn get_oldest_unsigned_logic_call(
@@ -225,11 +235,12 @@ pub async fn get_oldest_unsigned_logic_call(
             address: address.to_bech32(prefix).unwrap(),
         })
         .await?;
-    let call = response.into_inner().call;
-    match call {
-        Some(call) => Ok(Some(LogicCall::try_from(call)?)),
-        None => Ok(None),
-    }
+
+    response
+        .into_inner()
+        .call
+        .map(LogicCall::try_from)
+        .transpose()
 }
 
 pub async fn get_attestations(
@@ -241,8 +252,8 @@ pub async fn get_attestations(
             limit: limit.or(Some(1000u64)).unwrap(),
         })
         .await?;
-    let attestations = response.into_inner().attestations;
-    Ok(attestations)
+
+    Ok(response.into_inner().attestations)
 }
 
 /// Get a list of transactions going to the EVM blockchain that are pending for a given user.
@@ -255,5 +266,6 @@ pub async fn get_pending_send_to_eth(
             sender_address: sender_address.to_string(),
         })
         .await?;
+
     Ok(response.into_inner())
 }

@@ -72,7 +72,7 @@ async fn should_relay_logic_call(
 #[allow(clippy::too_many_arguments)]
 pub async fn relay_logic_calls(
     // the validator set currently in the contract on Ethereum
-    current_valset: Valset,
+    current_valset: &Valset,
     ethereum_key: EthPrivateKey,
     web3: &Web3,
     grpc_client: &mut GravityQueryClient<Channel>,
@@ -81,7 +81,7 @@ pub async fn relay_logic_calls(
     timeout: Duration,
     config: &RelayerConfig,
 ) {
-    let our_ethereum_address = ethereum_key.to_public_key().unwrap();
+    let our_ethereum_address = ethereum_key.to_address();
 
     let latest_calls = get_latest_logic_calls(grpc_client).await;
     trace!("Latest Logic calls {:?}", latest_calls);
@@ -146,7 +146,7 @@ pub async fn relay_logic_calls(
     let latest_cosmos_call_nonce = oldest_signed_call.clone().invalidation_nonce;
     if latest_cosmos_call_nonce > latest_ethereum_call {
         let cost = ethereum_gravity::logic_call::estimate_logic_call_cost(
-            current_valset.clone(),
+            current_valset,
             oldest_signed_call.clone(),
             &oldest_signatures,
             web3,
