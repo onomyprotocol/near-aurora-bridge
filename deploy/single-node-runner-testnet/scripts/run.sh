@@ -35,7 +35,7 @@ ETH_RPC_PORT="8545"
 # near testnet address
 ETH_ADDRESS="http://testnet.aurora.dev/"
 
-ETH_CONTRACT_ADDRESS=0x10997aca2B4a7965f09C87D32f09334D33B75c3f
+ETH_CONTRACT_ADDRESS=0x32EB0AbB474CFb880B14ac62082daf938d5D37Dd
 
 # ------------------ Run nab ------------------
 

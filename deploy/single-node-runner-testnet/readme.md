@@ -105,9 +105,9 @@ The ETC20 coins used in that part are FAU. You can substitute "erc20-address" to
   - Send from eth to cosmos (from 0x97D5F5D4fDf83b9D2Cb342A09b8DF297167a73d0 to cosmos173yvj5tf970308kkpw87ya4heny6psxafq03sr)
     ```
     gbt client eth-to-cosmos \
-            --ethereum-key="e0b21b1d80e53f38734a3ed395796956b50c637916ddbb6cedb096b848053d2d" \
+            --ethereum-key="c40f62e75a11789dbaf6ba82233ce8a52c20efb434281ae6977bb0b3a69bf709" \
             --ethereum-rpc="http://testnet.aurora.dev" \
-            --gravity-contract-address=0x10997aca2B4a7965f09C87D32f09334D33B75c3f \
+            --gravity-contract-address=0x32EB0AbB474CFb880B14ac62082daf938d5D37Dd \
             --token-contract-address=0xDa331E76dAf3a008b96f66bf8175458CD8a9e9E7 \
             --amount=7 \
             --destination=cosmos173yvj5tf970308kkpw87ya4heny6psxafq03sr
@@ -120,7 +120,7 @@ The ETC20 coins used in that part are FAU. You can substitute "erc20-address" to
     ```
     gbt client cosmos-to-eth --cosmos-phrase="vast almost payment betray solve badge street install certain resemble sausage gossip supreme spoil wait rough finish bike song enhance clown front absent border" \
                     --cosmos-grpc="http://0.0.0.0:9090" \
-                    --fees=1samoleans \
+                    --fees=10nab0xDa331E76dAf3a008b96f66bf8175458CD8a9e9E7 \
                     --amount=1000000000000000000nab0xDa331E76dAf3a008b96f66bf8175458CD8a9e9E7 \
                     --eth-destination=0x2d9480eBA3A001033a0B8c3Df26039FD3433D55d
     
