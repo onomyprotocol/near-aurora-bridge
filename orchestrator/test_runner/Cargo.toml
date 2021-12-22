@@ -15,7 +15,6 @@ cosmos_gravity = {path = "../cosmos_gravity"}
 gravity_utils = {path = "../gravity_utils"}
 gravity_proto = {path = "../gravity_proto/"}
 orchestrator = {path = "../orchestrator/"}
-web30 = {path = "../web30/"}
 
 bytes = "1"
 prost = "0.7"
@@ -30,6 +29,7 @@ actix-web = {version = "3", features=["openssl"]}
 actix-rt = "2.2"
 lazy_static = "1"
 url = "2"
+web30 = "0.15"
 num256 = "0.3"
 log = "0.4"
 env_logger = "0.9"

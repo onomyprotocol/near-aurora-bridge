@@ -18,7 +18,6 @@ gravity_utils = {path = "../gravity_utils"}
 gravity_proto = {path = "../gravity_proto/"}
 relayer = {path = "../relayer/"}
 orchestrator = {path = "../orchestrator/"}
-web30 = {path = "../web30/"}
 
 deep_space = "2.4"
 serde_derive = "1.0"
@@ -28,6 +27,7 @@ serde = "1.0"
 actix-rt = "2.2"
 lazy_static = "1"
 url = "2"
+web30 = "0.15"
 env_logger = "0.9"
 log = "0.4"
 openssl-probe = "0.1"

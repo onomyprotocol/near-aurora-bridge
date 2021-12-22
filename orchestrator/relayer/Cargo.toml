@@ -13,7 +13,6 @@ ethereum_gravity = {path = "../ethereum_gravity"}
 cosmos_gravity = {path = "../cosmos_gravity"}
 gravity_utils = {path = "../gravity_utils"}
 gravity_proto = {path = "../gravity_proto/"}
-web30 = {path = "../web30/"}
 
 deep_space = "2.4"
 serde_derive = "1.0"
@@ -22,6 +21,7 @@ docopt = "1"
 serde = "1.0"
 actix-rt = "2"
 lazy_static = "1"
+web30 = "0.15"
 num256 = "0.3"
 log = "0.4"
 env_logger = "0.9"
