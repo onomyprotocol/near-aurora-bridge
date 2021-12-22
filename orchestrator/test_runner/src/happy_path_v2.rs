@@ -158,21 +158,14 @@ pub async fn deploy_cosmos_representing_erc20_and_check_adoption(
     token_to_send_to_eth: String,
     token_to_send_to_eth_display_name: String,
 ) -> EthAddress {
-    get_valset_nonce(
-        gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
-        web30,
-    )
-    .await
-    .expect("Incorrect Gravity Address or otherwise unable to contact Gravity");
+    get_valset_nonce(gravity_address, keys[0].eth_key.to_address(), web30)
+        .await
+        .expect("Incorrect Gravity Address or otherwise unable to contact Gravity");
 
-    let starting_event_nonce = get_event_nonce(
-        gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
-        web30,
-    )
-    .await
-    .unwrap();
+    let starting_event_nonce =
+        get_event_nonce(gravity_address, keys[0].eth_key.to_address(), web30)
+            .await
+            .unwrap();
 
     deploy_erc20(
         token_to_send_to_eth.clone(),
@@ -187,13 +180,9 @@ pub async fn deploy_cosmos_representing_erc20_and_check_adoption(
     )
     .await
     .unwrap();
-    let ending_event_nonce = get_event_nonce(
-        gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
-        web30,
-    )
-    .await
-    .unwrap();
+    let ending_event_nonce = get_event_nonce(gravity_address, keys[0].eth_key.to_address(), web30)
+        .await
+        .unwrap();
 
     assert!(starting_event_nonce != ending_event_nonce);
     info!(

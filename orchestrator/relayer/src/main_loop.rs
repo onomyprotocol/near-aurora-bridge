@@ -27,7 +27,7 @@ pub async fn relayer_main_loop(
     loop {
         let loop_start = Instant::now();
 
-        let our_ethereum_address = ethereum_key.to_public_key().unwrap();
+        let our_ethereum_address = ethereum_key.to_address();
         let current_valset =
             find_latest_valset(&mut grpc_client, gravity_contract_address, &web3).await;
         if current_valset.is_err() {
@@ -47,7 +47,7 @@ pub async fn relayer_main_loop(
         let gravity_id = gravity_id.unwrap();
 
         relay_valsets(
-            current_valset.clone(),
+            &current_valset,
             ethereum_key,
             &web3,
             &mut grpc_client,
@@ -59,7 +59,7 @@ pub async fn relayer_main_loop(
         .await;
 
         relay_batches(
-            current_valset.clone(),
+            &current_valset,
             ethereum_key,
             &web3,
             &mut grpc_client,
@@ -71,7 +71,7 @@ pub async fn relayer_main_loop(
         .await;
 
         relay_logic_calls(
-            current_valset,
+            &current_valset,
             ethereum_key,
             &web3,
             &mut grpc_client,

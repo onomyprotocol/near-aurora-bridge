@@ -39,7 +39,7 @@ mod tests {
         for (key, power) in keys.iter().zip(powers.iter()) {
             members0.push(ValsetMember {
                 power: *power,
-                eth_address: Some(key.to_public_key().unwrap()),
+                eth_address: Some(key.to_address()),
             });
         }
         let valset0 = Valset {
@@ -55,7 +55,7 @@ mod tests {
         for (key, power) in keys.iter().zip(powers) {
             members1.push(ValsetMember {
                 power,
-                eth_address: Some(key.to_public_key().unwrap()),
+                eth_address: Some(key.to_address()),
             });
         }
         let valset1 = Valset {
@@ -67,18 +67,18 @@ mod tests {
 
         let mut confirms = Vec::new();
         for key in keys {
-            let message = encode_valset_confirm(gravity_id.to_string(), valset1.clone());
+            let message = encode_valset_confirm(gravity_id.to_string(), &valset1);
             let eth_signature = key.sign_ethereum_msg(&message);
             confirms.push(ValsetConfirmResponse {
                 orchestrator: some_cosmos_address,
-                eth_address: key.to_public_key().unwrap(),
+                eth_address: key.to_address(),
                 nonce: 1u8.into(),
                 eth_signature,
             })
         }
 
         let encoded_update_bytes =
-            encode_valset_update_payload(valset1, valset0, &confirms, gravity_id.to_string())
+            encode_valset_update_payload(&valset1, &valset0, &confirms, gravity_id.to_string())
                 .unwrap();
 
         assert_eq!(

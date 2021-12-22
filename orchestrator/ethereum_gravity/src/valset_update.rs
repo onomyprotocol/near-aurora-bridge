@@ -12,8 +12,8 @@ use web30::{client::Web3, types::TransactionRequest};
 /// to submit the provided validator set and signatures.
 #[allow(clippy::too_many_arguments)]
 pub async fn send_eth_valset_update(
-    new_valset: Valset,
-    old_valset: Valset,
+    new_valset: &Valset,
+    old_valset: &Valset,
     confirms: &[ValsetConfirmResponse],
     web3: &Web3,
     timeout: Duration,
@@ -24,7 +24,7 @@ pub async fn send_eth_valset_update(
     let old_nonce = old_valset.nonce;
     let new_nonce = new_valset.nonce;
     assert!(new_nonce > old_nonce);
-    let eth_address = our_eth_key.to_public_key().unwrap();
+    let eth_address = our_eth_key.to_address();
     info!(
         "Ordering signatures and submitting validator set {} -> {} update to Ethereum",
         old_nonce, new_nonce
@@ -79,7 +79,7 @@ pub async fn estimate_valset_cost(
     gravity_id: String,
     our_eth_key: EthPrivateKey,
 ) -> Result<GasCost, GravityError> {
-    let our_eth_address = our_eth_key.to_public_key().unwrap();
+    let our_eth_address = our_eth_key.to_address();
     let our_balance = web3.eth_get_balance(our_eth_address).await?;
     let our_nonce = web3.eth_get_transaction_count(our_eth_address).await?;
     let gas_limit = min((u64::MAX - 1).into(), our_balance.clone());
@@ -94,13 +94,7 @@ pub async fn estimate_valset_cost(
             gas: Some(gas_limit.into()),
             value: Some(zero.into()),
             data: Some(
-                encode_valset_update_payload(
-                    new_valset.clone(),
-                    old_valset.clone(),
-                    confirms,
-                    gravity_id,
-                )?
-                .into(),
+                encode_valset_update_payload(new_valset, old_valset, confirms, gravity_id)?.into(),
             ),
         })
         .await?;
@@ -114,13 +108,13 @@ pub async fn estimate_valset_cost(
 /// Encodes the payload bytes for the validator set update call, useful for
 /// estimating the cost of submitting a validator set
 pub fn encode_valset_update_payload(
-    new_valset: Valset,
-    old_valset: Valset,
+    new_valset: &Valset,
+    old_valset: &Valset,
     confirms: &[ValsetConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {
-    let new_valset_token = encode_valset_struct(&new_valset);
-    let old_valset_token = encode_valset_struct(&old_valset);
+    let new_valset_token = encode_valset_struct(new_valset);
+    let old_valset_token = encode_valset_struct(old_valset);
 
     // remember the signatures are over the new valset and therefore this is the value we must encode
     // the old valset exists only as a hash in the ethereum store
