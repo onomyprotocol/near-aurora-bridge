@@ -20,7 +20,7 @@ serde = "1.0"
 sha3 = "0.9"
 tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
 tonic = "0.4"
-web30 = {git = "ssh://git@github.com/leviathanbeak/web30.git"}
+web30 = {git = "https://github.com/onomyprotocol/web30.git"}
 
 [dev-dependencies]
 env_logger = "0.9"

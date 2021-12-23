@@ -14,7 +14,7 @@ deep_space = "2.4"
 log = "0.4"
 num256 = "0.3"
 sha3 = "0.9"
-web30 = {git = "ssh://git@github.com/leviathanbeak/web30.git"}
+web30 = {git = "https://github.com/onomyprotocol/web30.git"}
 
 [dev_dependencies]
 rand = "0.8"

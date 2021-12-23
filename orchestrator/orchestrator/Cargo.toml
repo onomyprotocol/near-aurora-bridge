@@ -30,7 +30,7 @@ serde_derive = "1.0"
 serde_json = "1.0"
 tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
 tonic = "0.4"
-web30 = {git = "ssh://git@github.com/leviathanbeak/web30.git"}
+web30 = {git = "https://github.com/onomyprotocol/web30.git"}
 
 # this is a dirty trick, we depent transitively on OpenSSL it's never
 # called directly in this crate, but if we specify this dep we can enable

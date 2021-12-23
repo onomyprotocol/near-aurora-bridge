@@ -2448,7 +2448,7 @@ dependencies = [
 [[package]]
 name = "web30"
 version = "0.18.0"
-source = "git+ssh://git@github.com/leviathanbeak/web30.git#b6f77591123dfa4c014d83d0d07dcfe77ac438f3"
+source = "git+https://github.com/onomyprotocol/web30.git#a9c502be1ba5dca98cfc3ba161dc63496f098125"
 dependencies = [
  "clarity",
  "futures",
