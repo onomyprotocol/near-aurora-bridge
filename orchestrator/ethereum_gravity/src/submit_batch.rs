@@ -14,7 +14,7 @@ use web30::{
 /// to submit the provided transaction batch
 #[allow(clippy::too_many_arguments)]
 pub async fn send_eth_transaction_batch(
-    current_valset: Valset,
+    current_valset: &Valset,
     batch: TransactionBatch,
     confirms: &[BatchConfirmResponse],
     web3: &Web3,
@@ -24,7 +24,7 @@ pub async fn send_eth_transaction_batch(
     our_eth_key: EthPrivateKey,
 ) -> Result<(), GravityError> {
     let new_batch_nonce = batch.nonce;
-    let eth_address = our_eth_key.to_public_key().unwrap();
+    let eth_address = our_eth_key.to_address();
     info!(
         "Ordering signatures and submitting TransactionBatch {}:{} to Ethereum",
         batch.token_contract, new_batch_nonce
@@ -89,7 +89,7 @@ pub async fn send_eth_transaction_batch(
 
 /// Returns the cost in Eth of sending this batch
 pub async fn estimate_tx_batch_cost(
-    current_valset: Valset,
+    current_valset: &Valset,
     batch: TransactionBatch,
     confirms: &[BatchConfirmResponse],
     web3: &Web3,
@@ -97,7 +97,7 @@ pub async fn estimate_tx_batch_cost(
     gravity_id: String,
     our_eth_key: EthPrivateKey,
 ) -> Result<GasCost, GravityError> {
-    let our_eth_address = our_eth_key.to_public_key().unwrap();
+    let our_eth_address = our_eth_key.to_address();
     let our_balance = web3.eth_get_balance(our_eth_address).await?;
     let our_nonce = web3.eth_get_transaction_count(our_eth_address).await?;
     let gas_limit = min((u64::MAX - 1).into(), our_balance.clone());
@@ -123,14 +123,14 @@ pub async fn estimate_tx_batch_cost(
 
 /// Encodes the batch payload for both estimate_tx_batch_cost and send_eth_transaction_batch
 fn encode_batch_payload(
-    current_valset: Valset,
+    current_valset: &Valset,
     batch: &TransactionBatch,
     confirms: &[BatchConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {
-    let current_valset_token = encode_valset_struct(&current_valset);
+    let current_valset_token = encode_valset_struct(current_valset);
     let new_batch_nonce = batch.nonce;
-    let hash = encode_tx_batch_confirm_hashed(gravity_id, batch.clone());
+    let hash = encode_tx_batch_confirm_hashed(gravity_id, batch);
     let sig_data = current_valset.order_sigs(&hash, confirms)?;
     let sig_arrays = to_arrays(sig_data);
     let (amounts, destinations, fees) = batch.get_checkpoint_values();

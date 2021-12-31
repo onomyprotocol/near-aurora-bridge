@@ -7,7 +7,7 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clarity = "0.4"
+clarity = "0.5"
 deep_space = "2.4"
 gravity_proto = {path = "../gravity_proto/"}
 log = "0.4"
@@ -17,11 +17,10 @@ serde = "1.0"
 serde_derive = "1.0"
 sha3 = "0.9"
 thiserror = "1.0.30"
-tokio = "1.4"
+tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
 tonic = "0.4"
 url = "2"
-web30 = "0.15"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}
 
 [dev_dependencies]
-actix = "0.12"
 rand = "0.8"

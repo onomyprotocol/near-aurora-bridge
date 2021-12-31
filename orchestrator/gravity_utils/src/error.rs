@@ -19,7 +19,7 @@ pub enum GravityError {
 
     // we can pass String info here as well if we need more context/details
     #[error(transparent)]
-    RpcError(#[from] Box<dyn std::error::Error>),
+    RpcError(#[from] Box<dyn std::error::Error + Send>),
 }
 
 impl From<CosmosGrpcError> for GravityError {

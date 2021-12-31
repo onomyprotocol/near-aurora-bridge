@@ -52,7 +52,7 @@ async fn find_latest_valid_valset(
                 for confirm in confirms.iter() {
                     assert_eq!(valset.nonce, confirm.nonce);
                 }
-                let hash = encode_valset_confirm_hashed(gravity_id.to_string(), valset.clone());
+                let hash = encode_valset_confirm_hashed(gravity_id.to_string(), &valset);
                 // order valset sigs prepares signatures for submission, notice we compare
                 // them to the 'current' set in the bridge, this confirms for us that the validator set
                 // we have here can be submitted to the bridge in it's current state
@@ -82,11 +82,11 @@ async fn valset_cost_error(
     gravity_id: String,
     gravity_contract_address: &EthAddress,
     web3: &Web3,
-    latest_cosmos_valset: Valset,
+    latest_cosmos_valset: &Valset,
     latest_cosmos_confirmed: &[ValsetConfirmResponse],
-    current_valset: Valset,
+    current_valset: &Valset,
 ) {
-    let our_address = ethereum_key.to_public_key().unwrap();
+    let our_address = ethereum_key.to_address();
     let current_valset_from_eth =
         get_valset_nonce(*gravity_contract_address, our_address, web3).await;
     if let Ok(current_valset_from_eth) = current_valset_from_eth {
@@ -94,7 +94,7 @@ async fn valset_cost_error(
             "Valset cost estimate for Nonce {} failed with {:?}, current valset {} / {}",
             latest_cosmos_valset.nonce, cost, current_valset.nonce, current_valset_from_eth
         );
-        let hash = encode_valset_confirm_hashed(gravity_id.clone(), latest_cosmos_valset.clone());
+        let hash = encode_valset_confirm_hashed(gravity_id.clone(), latest_cosmos_valset);
         // there are two possible encoding problems that could cause the very rare sig failure bug,
         // one of them is that the hash is incorrect, that's not probable considering that
         // both Geth and Clarity agree on it. but this lets us check
@@ -125,7 +125,7 @@ async fn should_relay_valset(
     let mut should_relay;
 
     let relaying_cost = cost.gas * cost.gas_price;
-    let pub_key = ethereum_key.to_public_key().unwrap();
+    let pub_key = ethereum_key.to_address();
     let reward = valset.reward_amount.clone();
     let token_in = valset.reward_token;
     if token_in.is_none() {
@@ -185,8 +185,8 @@ async fn should_relay_valset(
 #[allow(clippy::too_many_arguments)]
 // Performs relaying of a valid valset, if it is profitable to do so
 async fn relay_valid_valset(
-    latest_cosmos_valset: Valset,
-    current_valset: Valset,
+    latest_cosmos_valset: &Valset,
+    current_valset: &Valset,
     latest_cosmos_confirmed: Vec<ValsetConfirmResponse>,
     web3: &Web3,
     gravity_contract_address: EthAddress,
@@ -196,8 +196,8 @@ async fn relay_valid_valset(
     enable_relay_market: &bool,
 ) {
     let cost = ethereum_gravity::valset_update::estimate_valset_cost(
-        &latest_cosmos_valset,
-        &current_valset,
+        latest_cosmos_valset,
+        current_valset,
         &latest_cosmos_confirmed,
         web3,
         gravity_contract_address,
@@ -212,7 +212,7 @@ async fn relay_valid_valset(
             gravity_id.clone(),
             &gravity_contract_address,
             web3,
-            latest_cosmos_valset.clone(),
+            latest_cosmos_valset,
             &latest_cosmos_confirmed,
             current_valset,
         )
@@ -230,7 +230,7 @@ async fn relay_valid_valset(
         );
 
     let should_relay = if *enable_relay_market {
-        should_relay_valset(&latest_cosmos_valset, &ethereum_key, cost, web3).await
+        should_relay_valset(latest_cosmos_valset, &ethereum_key, cost, web3).await
     } else {
         true // Default to relaying if the relay market is disabled
     };
@@ -260,7 +260,7 @@ async fn relay_valid_valset(
 /// set then we should package and submit the update as an Ethereum transaction
 pub async fn relay_valsets(
     // the validator set currently in the contract on Ethereum
-    current_valset: Valset,
+    current_valset: &Valset,
     ethereum_key: EthPrivateKey,
     web3: &Web3,
     grpc_client: &mut GravityQueryClient<Channel>,
@@ -291,7 +291,7 @@ pub async fn relay_valsets(
 
     let (latest_valset, latest_confirmed, last_error) = find_latest_valid_valset(
         &latest_valsets[0].nonce,
-        &current_valset,
+        current_valset,
         grpc_client,
         &gravity_id,
     )
@@ -324,7 +324,7 @@ pub async fn relay_valsets(
 
     if latest_cosmos_valset.nonce > current_valset.nonce {
         relay_valid_valset(
-            latest_cosmos_valset,
+            &latest_cosmos_valset,
             current_valset,
             latest_cosmos_confirmed,
             web3,

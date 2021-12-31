@@ -1,34 +1,31 @@
 [package]
-name = "relayer"
-version = "0.4.3"
 authors = ["Justin Kilpatrick <justin@althea.net>"]
 edition = "2018"
+name = "relayer"
+version = "0.4.3"
 
 [lib]
 name = "relayer"
 path = "src/lib.rs"
 
 [dependencies]
-ethereum_gravity = {path = "../ethereum_gravity"}
 cosmos_gravity = {path = "../cosmos_gravity"}
-gravity_utils = {path = "../gravity_utils"}
+ethereum_gravity = {path = "../ethereum_gravity"}
 gravity_proto = {path = "../gravity_proto/"}
+gravity_utils = {path = "../gravity_utils"}
 
+clarity = "0.5"
 deep_space = "2.4"
-serde_derive = "1.0"
-clarity = "0.4"
 docopt = "1"
-serde = "1.0"
-actix-rt = "2"
-lazy_static = "1"
-web30 = "0.15"
-num256 = "0.3"
-log = "0.4"
 env_logger = "0.9"
-tokio = "1.4"
-tonic = "0.4"
+futures = "0.3.19"
+lazy_static = "1"
+log = "0.4"
+num256 = "0.3"
 openssl-probe = "0.1"
-
-
-[dev-dependencies]
-actix = "0.12"
+rayon = "1.5.1"
+serde = "1.0"
+serde_derive = "1.0"
+tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
+tonic = "0.4"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}
