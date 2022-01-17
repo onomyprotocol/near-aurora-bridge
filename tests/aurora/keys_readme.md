@@ -1,0 +1,1 @@
+aurora.node0.json  is the key copied from:  /root/.near-credentials/local/aurora.node0.json

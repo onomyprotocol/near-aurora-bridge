@@ -14,7 +14,7 @@ set -e
 
 NODES=3
 
-pushd $DIR/../
+bash $DIR/run-eth.sh
 
-# Run new test container instance
-docker run --name nab_test_instance --mount type=bind,source="$(pwd)"/,target=/nab --cap-add=NET_ADMIN -p 9090:9090 -p 26657:26657 -p 1317:1317 -p 8545:8545 -it nab-base /bin/bash /nab/tests/container-scripts/reload-code.sh $NODES $TEST_TYPE $ALCHEMY_ID
+echo "Starting test"
+docker run --name nab_test_instance --network testnet --mount type=bind,source="$(pwd)"/,target=/nab --cap-add=NET_ADMIN -p 9090:9090 -p 26657:26657 -p 1317:1317 -p 8545:8545 -it nab-base /bin/bash /nab/tests/container-scripts/reload-code.sh $NODES $TEST_TYPE $ALCHEMY_ID

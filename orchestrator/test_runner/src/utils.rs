@@ -2,6 +2,7 @@ use crate::get_fee;
 use crate::ADDRESS_PREFIX;
 use crate::COSMOS_NODE_GRPC;
 use crate::ETH_NODE;
+use crate::NONCE_UPDATE_TIMEOUT;
 use crate::TOTAL_TIMEOUT;
 use crate::{one_eth, MINER_PRIVATE_KEY};
 use crate::{MINER_ADDRESS, OPERATION_TIMEOUT};
@@ -21,9 +22,10 @@ use gravity_utils::types::GravityBridgeToolsConfig;
 use orchestrator::main_loop::orchestrator_main_loop;
 use rand::Rng;
 use std::thread;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use web30::jsonrpc::error::Web3Error;
 use web30::{client::Web3, types::SendTxOption};
+use std::thread::sleep;
 
 pub fn create_default_test_config() -> GravityBridgeToolsConfig {
     let mut no_relay_market_config = GravityBridgeToolsConfig::default();
@@ -118,6 +120,7 @@ pub async fn send_erc20_bulk(
 /// single address without your sequence getting out of whack. By manually setting the nonce
 /// here we can quickly send thousands of transactions in only a few blocks
 pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+    // type to let the nonce be indexed
     let net_version = web3.net_version().await.unwrap();
     let mut nonce = web3
         .eth_get_transaction_count(*MINER_ADDRESS)
@@ -140,10 +143,42 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
     }
     let mut sends = Vec::new();
     for tx in transactions {
+        // type to let the nonce be indexed
+        wait_for_nonce(tx.nonce.clone(), *MINER_ADDRESS, web3).await;
         sends.push(web3.eth_send_raw_transaction(tx.to_bytes().unwrap()));
     }
     let txids = join_all(sends).await;
     wait_for_txids(txids, web3).await;
+}
+
+/// utility function that waits for a nonce update or panics in case the NONCE_UPDATE_TIMEOUT is reached
+async fn wait_for_nonce(nonce: Uint256, address: EthAddress, web3: &Web3) {
+    let iteration_timeout = Duration::from_secs(1);
+    let max_iterations = NONCE_UPDATE_TIMEOUT.as_secs() / iteration_timeout.as_secs();
+
+    for i in 1..max_iterations {
+        let current_nonce = web3.eth_get_transaction_count(address).await.unwrap();
+        if nonce == current_nonce {
+            return;
+        }
+        info!(
+            "The nonce {} != current_nonce {}, waiting for {} sec to retry",
+            nonce,
+            current_nonce,
+            iteration_timeout.as_secs()
+        );
+        sleep(iteration_timeout);
+
+        if i != max_iterations {
+            continue;
+        }
+        panic!(
+            "The nonce {} wasn't changed to required {} in {} seconds",
+            current_nonce,
+            nonce,
+            NONCE_UPDATE_TIMEOUT.as_secs()
+        );
+    }
 }
 
 /// utility function that waits for a large number of txids to enter a block

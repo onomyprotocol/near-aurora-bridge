@@ -9,5 +9,13 @@ if [ ! -z $2 ];
 fi
 set -u
 
-# Run test entry point script
-docker exec nab_test_instance /bin/sh -c "pushd /nab/ && tests/container-scripts/integration-tests.sh 1 $TEST_TYPE $OPTIONAL_KEY"
+echo "Clearing containers"
+docker-compose down
+
+bash $DIR/run-eth.sh
+
+echo "Starting test"
+docker-compose run nab /bin/bash /nab/tests/container-scripts/all-up-test-internal.sh 3 $TEST_TYPE $OPTIONAL_KEY
+
+echo "Clearing containers"
+docker-compose down

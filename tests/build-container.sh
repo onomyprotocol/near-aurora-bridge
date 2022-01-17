@@ -13,4 +13,5 @@ pushd $REPOFOLDER
 # Build base container
 git archive --format=tar.gz -o $DOCKERFOLDER/nab.tar.gz --prefix=nab/ HEAD
 pushd $DOCKERFOLDER
+
 docker build -t nab-base .
