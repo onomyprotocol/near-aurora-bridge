@@ -99,22 +99,22 @@ async function deploy() {
   const provider = await new ethers.providers.JsonRpcProvider(args["eth-node"]);
   let wallet = new ethers.Wallet(args["eth-privkey"], provider);
 
-
-  if (args["test-mode"] == "True" || args["test-mode"] == "true") {
-    var success = false;
-    while(!success) {
-      var present = new Date();
-      var timeDiff: number = present.getTime() - startTime.getTime();
-      timeDiff = timeDiff / 1000
-      provider.getBlockNumber().then(_ => success = true).catch(_ => console.log("Ethereum RPC error, trying again"))
-
-      if (timeDiff > 600) {
-        console.log("Could not contact Ethereum RPC after 10 minutes, check the URL!")
-        exit(1)
-      }
-      await sleep(1000);
-    }
-  }
+  await sleep(10000);
+  // if (args["test-mode"] == "True" || args["test-mode"] == "true") {
+  //   var success = false;
+  //   while(!success) {
+  //     var present = new Date();
+  //     var timeDiff: number = present.getTime() - startTime.getTime();
+  //     timeDiff = timeDiff / 1000
+  //     provider.getBlockNumber().then(_ => success = true).catch(_ => console.log("Ethereum RPC error, trying again"))
+  //
+  //     if (timeDiff > 600) {
+  //       console.log("Could not contact Ethereum RPC after 10 minutes, check the URL!")
+  //       exit(1)
+  //     }
+  //     await sleep(1000);
+  //   }
+  // }
 
   if (args["test-mode"] == "True" || args["test-mode"] == "true") {
     console.log("Test mode, deploying ERC20 contracts");
