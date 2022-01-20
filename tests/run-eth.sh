@@ -7,6 +7,8 @@ id=$(docker create --rm onomy/aurora-engine-local:latest)
 docker cp $id:/root/.near-credentials/local/aurora.node0.json aurora/aurora.node0.json \
   & docker rm -f $id
 
+chmod 777 aurora/aurora.node0.json
+
 echo "Starting the aurora chain"
 docker-compose --profile aurora up -d
 
