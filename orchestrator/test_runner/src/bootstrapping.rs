@@ -93,6 +93,8 @@ pub fn get_keys() -> Vec<ValidatorKeys> {
 /// the Ethereum test chain starts in the testing environment. We write
 /// the stdout of this to a file for later test runs to parse
 pub async fn deploy_contracts(contact: &Contact) {
+    info!("Deploy contracts for cosmos={} and eth={} with key={}",
+        COSMOS_NODE_ABCI.as_str(), ETH_NODE.as_str(), *MINER_PRIVATE_KEY);
     // prevents the node deployer from failing (rarely) when the chain has not
     // yet produced the next block after submitting each eth address
     contact.wait_for_next_block(TOTAL_TIMEOUT).await.unwrap();
