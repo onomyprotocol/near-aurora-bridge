@@ -15,6 +15,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   validator-out:
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +30,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh VALIDATOR_OUT
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   valset-stress:
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +45,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh VALSET_STRESS
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   batch-stress:
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +60,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh BATCH_STRESS
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   v2-happy-path:
     runs-on: ubuntu-latest
     steps:
@@ -47,6 +75,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh V2_HAPPY_PATH
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   orchestrator-keys:
     runs-on: ubuntu-latest
     steps:
@@ -55,6 +90,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh ORCHESTRATOR_KEYS
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   valset_update_rewards:
     runs-on: ubuntu-latest
     steps:
@@ -63,6 +105,14 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh VALSET_REWARDS
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
+
   evidence_based_slashing:
     runs-on: ubuntu-latest
     steps:
@@ -71,6 +121,13 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh EVIDENCE
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
   transaction-cancel:
     runs-on: ubuntu-latest
     steps:
@@ -79,3 +136,10 @@ jobs:
         run: |
           cd tests
           /bin/bash all-up-test.sh TXCANCEL
+      - name: Docker logs
+        if: always()
+        run: |
+          cd tests
+          docker ps -a
+          docker-compose logs
+
