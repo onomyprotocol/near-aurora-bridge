@@ -45,8 +45,6 @@ mod valset_stress;
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(30);
 /// the timeout for the total system
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(300);
-/// the timeout for the nonce to be update
-const NONCE_UPDATE_TIMEOUT: Duration = Duration::from_secs(30);
 
 // Retrieve values from runtime ENV vars
 lazy_static! {
