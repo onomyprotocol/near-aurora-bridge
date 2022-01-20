@@ -29,10 +29,6 @@ docker-compose down
 
 bash $DIR/run-eth.sh
 
-echo "Inspect current containers state"
-docker ps
-docker-compose logs
-
 echo "Starting test"
 docker-compose run nab /bin/bash /nab/tests/container-scripts/all-up-test-internal.sh $NODES $TEST_TYPE $ALCHEMY_ID
 
