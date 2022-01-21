@@ -2,7 +2,7 @@ name: Integration tests
 
 on:
   push:
-    branches: [master, main, dev, dzmitryhil/auroral-local-compose]
+    branches: [master, main, dev, dzmitryhil/auroral-local-compose, dzmitryhil/web-30-onomy]
   pull_request:
     branches: [master, main, dev]
 
