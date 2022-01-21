@@ -18,11 +18,10 @@ gravity_utils = {path = "../gravity_utils"}
 gravity_proto = {path = "../gravity_proto/"}
 relayer = {path = "../relayer/"}
 orchestrator = {path = "../orchestrator/"}
-web30 = {path = "../web30/"}
 
 deep_space = "2.4"
 serde_derive = "1.0"
-clarity = "0.4"
+clarity = "0.5"
 clap = "3.0.0-beta.2"
 serde = "1.0"
 actix-rt = "2.2"
@@ -35,3 +34,4 @@ tokio = "1.4"
 rand = "0.8"
 dirs = "3.0"
 toml = "0.5"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}

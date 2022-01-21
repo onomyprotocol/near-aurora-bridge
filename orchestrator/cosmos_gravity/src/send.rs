@@ -94,7 +94,7 @@ pub async fn send_valset_confirms(
     gravity_id: String,
 ) -> Result<TxResponse, CosmosGrpcError> {
     let our_address = private_key.to_address(&contact.get_prefix()).unwrap();
-    let our_eth_address = eth_private_key.to_public_key().unwrap();
+    let our_eth_address = eth_private_key.to_address();
 
     let fee = Fee {
         amount: vec![fee],
@@ -145,7 +145,7 @@ pub async fn send_batch_confirm(
     gravity_id: String,
 ) -> Result<TxResponse, CosmosGrpcError> {
     let our_address = private_key.to_address(&contact.get_prefix()).unwrap();
-    let our_eth_address = eth_private_key.to_public_key().unwrap();
+    let our_eth_address = eth_private_key.to_address();
 
     let fee = Fee {
         amount: vec![fee],
@@ -197,7 +197,7 @@ pub async fn send_logic_call_confirm(
     gravity_id: String,
 ) -> Result<TxResponse, CosmosGrpcError> {
     let our_address = private_key.to_address(&contact.get_prefix()).unwrap();
-    let our_eth_address = eth_private_key.to_public_key().unwrap();
+    let our_eth_address = eth_private_key.to_address();
 
     let fee = Fee {
         amount: vec![fee],

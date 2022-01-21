@@ -160,7 +160,7 @@ pub async fn deploy_cosmos_representing_erc20_and_check_adoption(
 ) -> EthAddress {
     get_valset_nonce(
         gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
+        keys[0].eth_key.to_address(),
         web30,
     )
     .await
@@ -168,7 +168,7 @@ pub async fn deploy_cosmos_representing_erc20_and_check_adoption(
 
     let starting_event_nonce = get_event_nonce(
         gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
+        keys[0].eth_key.to_address(),
         web30,
     )
     .await
@@ -189,7 +189,7 @@ pub async fn deploy_cosmos_representing_erc20_and_check_adoption(
     .unwrap();
     let ending_event_nonce = get_event_nonce(
         gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
+        keys[0].eth_key.to_address(),
         web30,
     )
     .await

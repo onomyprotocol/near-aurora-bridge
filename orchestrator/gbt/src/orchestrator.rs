@@ -86,8 +86,7 @@ pub async fn orchestrator(
     let web3 = connections.web3.clone().unwrap();
 
     let public_eth_key = ethereum_key
-        .to_public_key()
-        .expect("Invalid Ethereum Private Key!");
+        .to_address();
     let public_cosmos_key = cosmos_key.to_address(&contact.get_prefix()).unwrap();
     info!("Starting Gravity Validator companion binary Relayer + Oracle + Eth Signer");
     info!(

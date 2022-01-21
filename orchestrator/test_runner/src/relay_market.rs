@@ -78,7 +78,7 @@ async fn setup_batch_test(
     let mut grpc_client = grpc_client.clone();
     // Acquire 10,000 WETH
     let weth_acquired = web30
-        .wrap_eth(one_eth() * 10000u16.into(), *MINER_PRIVATE_KEY, None)
+        .wrap_eth(one_eth() * 10000u16.into(), *MINER_PRIVATE_KEY, None, None)
         .await;
     assert!(
         !weth_acquired.is_err(),
@@ -93,6 +93,7 @@ async fn setup_batch_test(
             erc20_contract,
             None,
             one_eth() * 1000u16.into(),
+            None,
             None,
             None,
             None,
@@ -113,7 +114,7 @@ async fn setup_batch_test(
         .to_address(ADDRESS_PREFIX.as_str())
         .unwrap();
     let dest_eth_private_key = EthPrivateKey::from_slice(&secret).unwrap();
-    let dest_eth_address = dest_eth_private_key.to_public_key().unwrap();
+    let dest_eth_address = dest_eth_private_key.to_address();
 
     // Send the generated address 300 dai from ethereum to cosmos
     for _ in 0u32..3 {

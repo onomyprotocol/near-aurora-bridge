@@ -10,10 +10,9 @@ edition = "2018"
 gravity_utils = {path = "../gravity_utils"}
 ethereum_gravity = {path = "../ethereum_gravity"}
 gravity_proto = {path = "../gravity_proto/"}
-web30 = {path = "../web30/"}
 
 deep_space = "2.4"
-clarity = "0.4"
+clarity = "0.5"
 serde = "1.0"
 num256 = "0.3"
 log = "0.4"
@@ -21,6 +20,7 @@ sha3 = "0.9"
 tokio = "1.4"
 tonic = "0.4"
 prost-types = "0.7"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}
 
 [dev-dependencies]
 env_logger = "0.9"

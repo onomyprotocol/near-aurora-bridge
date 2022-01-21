@@ -8,13 +8,13 @@ edition = "2018"
 
 [dependencies]
 gravity_utils = {path = "../gravity_utils"}
-web30 = {path = "../web30/"}
 
 deep_space = "2.4"
-clarity = "0.4"
+clarity = "0.5"
 num256 = "0.3"
 log = "0.4"
 sha3 = "0.9"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}
 
 [dev_dependencies]
 rand = "0.8"

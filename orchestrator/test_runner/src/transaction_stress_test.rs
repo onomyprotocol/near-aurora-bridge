@@ -302,7 +302,7 @@ pub async fn transaction_stress_test(
             get_tx_batch_nonce(
                 gravity_address,
                 token,
-                keys[0].eth_key.to_public_key().unwrap(),
+                keys[0].eth_key.to_address(),
                 web30
             )
             .await

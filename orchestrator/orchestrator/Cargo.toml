@@ -15,11 +15,10 @@ ethereum_gravity = {path = "../ethereum_gravity"}
 cosmos_gravity = {path = "../cosmos_gravity"}
 gravity_utils = {path = "../gravity_utils"}
 gravity_proto = {path = "../gravity_proto/"}
-web30 = {path = "../web30/"}
 
 deep_space = "2.4"
 serde_derive = "1.0"
-clarity = "0.4"
+clarity = "0.5"
 docopt = "1"
 serde = "1.0"
 actix-rt = "2.2"
@@ -33,6 +32,7 @@ rand = "0.8"
 tonic = "0.4"
 futures = "0.3"
 openssl-probe = "0.1"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}
 
 # this is a dirty trick, we depent transitively on OpenSSL it's never
 # called directly in this crate, but if we specify this dep we can enable

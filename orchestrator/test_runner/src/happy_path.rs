@@ -193,7 +193,7 @@ pub async fn test_valset_update(
 ) {
     get_valset_nonce(
         gravity_address,
-        keys[0].eth_key.to_public_key().unwrap(),
+        keys[0].eth_key.to_address(),
         web30,
     )
     .await
@@ -272,7 +272,7 @@ async fn check_valset_update_attestation(
         // Check that each bridge validator is one of the addresses in our keys
         for bridge_val in decoded.members {
             let found_val = keys.iter().any(|key: &ValidatorKeys| {
-                let eth_pub_key = key.eth_key.to_public_key().unwrap().to_string();
+                let eth_pub_key = key.eth_key.to_address().to_string();
                 bridge_val.ethereum_address == eth_pub_key
             });
             if !found_val {

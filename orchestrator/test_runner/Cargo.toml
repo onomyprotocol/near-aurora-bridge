@@ -15,14 +15,13 @@ cosmos_gravity = {path = "../cosmos_gravity"}
 gravity_utils = {path = "../gravity_utils"}
 gravity_proto = {path = "../gravity_proto/"}
 orchestrator = {path = "../orchestrator/"}
-web30 = {path = "../web30/"}
 
 bytes = "1"
 prost = "0.7"
 prost-types = "0.7"
 deep_space = "2.4"
 serde_derive = "1.0"
-clarity = "0.4"
+clarity = "0.5"
 docopt = "1"
 serde = "1.0"
 actix = "0.12"
@@ -38,3 +37,4 @@ rand = "0.8"
 tonic = "0.4"
 futures = "0.3"
 serde_json = "1.0"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}
