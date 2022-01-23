@@ -1,1 +1,0 @@
-validator_key.json is the key copied from the docker_prepare.sh

@@ -24,5 +24,13 @@ TEST_TYPE=$1
 ALCHEMY_ID=$2
 set -u
 
-# Run new test container instance
-docker run --name nab_all_up_test_instance --cap-add=NET_ADMIN -t nab-base /bin/bash /nab/tests/container-scripts/all-up-test-internal.sh $NODES $TEST_TYPE $ALCHEMY_ID
+echo "Clearing containers"
+docker-compose down
+
+bash $DIR/run-eth.sh
+
+echo "Starting test"
+docker-compose run nab /bin/bash /nab/tests/container-scripts/all-up-test-internal.sh $NODES $TEST_TYPE $ALCHEMY_ID
+
+echo "Clearing containers"
+docker-compose down
