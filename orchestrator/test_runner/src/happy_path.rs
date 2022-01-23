@@ -315,7 +315,7 @@ pub async fn test_erc20_deposit(
 
     let mut grpc_client = grpc_client.clone();
 
-    let start_coin = check_cosmos_balance("gravity", dest, contact).await;
+    let start_coin = check_cosmos_balance("nab", dest, contact).await;
     info!(
         "Sending to Cosmos from {} to {} with amount {}",
         *MINER_ADDRESS, dest, amount
@@ -346,7 +346,7 @@ pub async fn test_erc20_deposit(
         loop {
             match (
                 start_coin.clone(),
-                check_cosmos_balance("gravity", dest, contact).await,
+                check_cosmos_balance("nab", dest, contact).await,
             ) {
                 (Some(start_coin), Some(end_coin)) => {
                     if start_coin.amount + amount.clone() == end_coin.amount
@@ -437,7 +437,7 @@ async fn test_batch(
     let dest_cosmos_address = dest_cosmos_private_key
         .to_address(&contact.get_prefix())
         .unwrap();
-    let coin = check_cosmos_balance("gravity", dest_cosmos_address, contact)
+    let coin = check_cosmos_balance("nab", dest_cosmos_address, contact)
         .await
         .unwrap();
     let token_name = coin.denom;
@@ -562,7 +562,7 @@ async fn submit_duplicate_erc20_send(
     receiver: CosmosAddress,
     keys: &[ValidatorKeys],
 ) {
-    let start_coin = check_cosmos_balance("gravity", receiver, contact)
+    let start_coin = check_cosmos_balance("nab", receiver, contact)
         .await
         .expect("Did not find coins!");
 
@@ -599,7 +599,7 @@ async fn submit_duplicate_erc20_send(
 
     contact.wait_for_next_block(TOTAL_TIMEOUT).await.unwrap();
 
-    if let Some(end_coin) = check_cosmos_balance("gravity", receiver, contact).await {
+    if let Some(end_coin) = check_cosmos_balance("nab", receiver, contact).await {
         if start_coin.amount == end_coin.amount && start_coin.denom == end_coin.denom {
             info!("Successfully failed to duplicate ERC20!");
         } else {
