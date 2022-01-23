@@ -8,7 +8,6 @@ set -eux
 
 # Stop any currently running nab and eth processes
 pkill nab || true # allowed to fail
-pkill geth || true # allowed to fail
 
 # Wipe filesystem changes
 for i in $(seq 1 $NODES);

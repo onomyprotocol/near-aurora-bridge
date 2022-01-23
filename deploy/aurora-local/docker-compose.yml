@@ -1,0 +1,56 @@
+version: "3.3"
+services:
+  near:
+    image: onomy/aurora-engine-local:latest
+    container_name: near-aurora-local
+    restart: always
+    ports:
+      - 3030:3030
+    environment:
+      - NEAR_ENV=localnet
+      - NODE_ENV=localnet
+
+  database:
+    container_name: near-aurora-relayer-database
+    image: onomy/aurora-relayer-database:latest
+    restart: always
+    ports:
+      - 5432:5432
+
+  indexer:
+    container_name: near-aurora-relayer-indexer
+    image: onomy/aurora-relayer-endpoint:latest
+    restart: always
+    init: true
+    depends_on:
+      - near
+      - database
+    environment:
+      - WAIT_HOSTS=database:5432
+      - WAIT_BEFORE=1
+      - NEAR_ENV=localnet
+      - NODE_ENV=localnet
+    volumes:
+      - ./config:/srv/aurora/relayer/config
+    extra_hosts:
+      - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
+    entrypoint: ["sh", "-c", "util/indexer/indexer | node lib/indexer_backend.js"]
+
+  endpoint:
+    container_name: near-aurora-relayer-endpoint
+    image: onomy/aurora-relayer-endpoint:latest
+    restart: always
+    init: true
+    depends_on:
+      - near
+      - database
+    environment:
+      - WAIT_HOSTS=database:5432
+      - WAIT_BEFORE=1
+      - NEAR_ENV=localnet
+      - NODE_ENV=localnet
+    ports:
+      - 8545:8545
+    volumes:
+      - ./config:/srv/aurora/relayer/config
+    entrypoint: ["node", "lib/index.js"]
