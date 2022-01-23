@@ -22,13 +22,13 @@ pub async fn send_to_cosmos(
     web3: &Web3,
     options: Vec<SendTxOption>,
 ) -> Result<Uint256, GravityError> {
-    let sender_address = sender_secret.to_public_key()?;
+    let sender_address = sender_secret.to_address();
     let mut approve_nonce = None;
 
     for option in options.iter() {
         if let SendTxOption::Nonce(_) = option {
-            return Err(GravityError::InvalidOptionsError(
-                "This call sends more than one tx! Can't specify".to_string(),
+            return Err(GravityError::ValidationError(
+                "This call sends more than one tx! Can't specify".into(),
             ));
         }
     }

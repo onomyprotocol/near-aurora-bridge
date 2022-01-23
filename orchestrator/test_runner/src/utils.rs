@@ -5,7 +5,6 @@ use crate::ETH_NODE;
 use crate::TOTAL_TIMEOUT;
 use crate::{one_eth, MINER_PRIVATE_KEY};
 use crate::{MINER_ADDRESS, OPERATION_TIMEOUT};
-use actix::System;
 use clarity::{Address as EthAddress, Uint256};
 use clarity::{PrivateKey as EthPrivateKey, Transaction};
 use deep_space::address::Address as CosmosAddress;
@@ -20,8 +19,7 @@ use gravity_proto::gravity::query_client::QueryClient as GravityQueryClient;
 use gravity_utils::types::GravityBridgeToolsConfig;
 use orchestrator::main_loop::orchestrator_main_loop;
 use rand::Rng;
-use std::thread;
-use std::time::Instant;
+use std::panic;
 use web30::jsonrpc::error::Web3Error;
 use web30::{client::Web3, types::SendTxOption};
 
@@ -29,6 +27,14 @@ pub fn create_default_test_config() -> GravityBridgeToolsConfig {
     let mut no_relay_market_config = GravityBridgeToolsConfig::default();
     no_relay_market_config.relayer.batch_market_enabled = false;
     no_relay_market_config.relayer.valset_market_enabled = false;
+    no_relay_market_config.relayer.logic_call_market_enabled = false;
+    no_relay_market_config
+}
+
+pub fn create_market_test_config() -> GravityBridgeToolsConfig {
+    let mut no_relay_market_config = GravityBridgeToolsConfig::default();
+    no_relay_market_config.relayer.batch_market_enabled = true;
+    no_relay_market_config.relayer.valset_market_enabled = true;
     no_relay_market_config.relayer.logic_call_market_enabled = false;
     no_relay_market_config
 }
@@ -41,7 +47,7 @@ pub async fn send_eth_to_orchestrators(keys: &[ValidatorKeys], web30: &Web3) {
     );
     let mut eth_keys = Vec::new();
     for key in keys {
-        eth_keys.push(key.eth_key.to_public_key().unwrap());
+        eth_keys.push(key.eth_key.to_address());
     }
     send_eth_bulk(one_eth() * 100u16.into(), &eth_keys, web30).await;
 }
@@ -157,23 +163,31 @@ async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
 }
 
 /// utility function for bulk checking erc20 balances, used to provide
-/// a single future that contains the assert as well s the request
+/// a single future that contains the assert as well qs the request
 async fn check_erc20_balance(address: EthAddress, erc20: EthAddress, amount: Uint256, web3: &Web3) {
-    let start = Instant::now();
     // overly complicated retry logic allows us to handle the possibility that gas prices change between blocks
     // and cause any individual request to fail.
-    let mut new_balance = Err(Web3Error::BadInput("Intentional Error".to_string()));
-    while new_balance.is_err() && Instant::now() - start < TOTAL_TIMEOUT {
-        new_balance = web3.get_erc20_balance(erc20, address).await;
-        // only keep trying if our error is gas related
-        if let Err(ref e) = new_balance {
-            if !e.to_string().contains("maxFeePerGas") {
-                break;
+    let get_erc20_balance = async {
+        loop {
+            match web3.get_erc20_balance(erc20, address).await {
+                Ok(new_balance) => return Some(new_balance),
+                Err(err) => {
+                    // only keep trying if our error is gas related
+                    if !err.to_string().contains("maxFeePerGas") {
+                        return None;
+                    }
+                }
             }
         }
+    };
+
+    match tokio::time::timeout(TOTAL_TIMEOUT, get_erc20_balance).await {
+        Err(_) => panic!("get_erc20_balance timedout"),
+        Ok(new_balance) => {
+            let new_balance = new_balance.unwrap();
+            assert!(new_balance >= amount.clone());
+        }
     }
-    let new_balance = new_balance.unwrap();
-    assert!(new_balance >= amount.clone());
 }
 
 pub fn get_user_key() -> BridgeUserKey {
@@ -181,7 +195,7 @@ pub fn get_user_key() -> BridgeUserKey {
     let secret: [u8; 32] = rng.gen();
     // the starting location of the funds
     let eth_key = EthPrivateKey::from_slice(&secret).unwrap();
-    let eth_address = eth_key.to_public_key().unwrap();
+    let eth_address = eth_key.to_address();
     // the destination on cosmos that sends along to the final ethereum destination
     let cosmos_key = CosmosPrivateKey::from_secret(&secret);
     let cosmos_address = cosmos_key.to_address(ADDRESS_PREFIX.as_str()).unwrap();
@@ -189,7 +203,7 @@ pub fn get_user_key() -> BridgeUserKey {
     let secret: [u8; 32] = rng.gen();
     // the final destination of the tokens back on Ethereum
     let eth_dest_key = EthPrivateKey::from_slice(&secret).unwrap();
-    let eth_dest_address = eth_key.to_public_key().unwrap();
+    let eth_dest_address = eth_key.to_address();
     BridgeUserKey {
         eth_address,
         eth_key,
@@ -224,9 +238,7 @@ pub struct ValidatorKeys {
 }
 
 /// This function pays the piper for the strange concurrency model that we use for the tests
-/// we launch a thread, create an actix executor and then start the orchestrator within that scope
-/// previously we could just throw around futures to spawn despite not having 'send' newer versions
-/// of Actix rightly forbid this and we have to take the time to handle it here.
+/// we spwan a thread, create a tokio executor and then start the orchestrator within that scope
 pub async fn start_orchestrators(
     keys: Vec<ValidatorKeys>,
     gravity_address: EthAddress,
@@ -243,7 +255,7 @@ pub async fn start_orchestrators(
         let config = orchestrator_config.clone();
         info!(
             "Spawning Orchestrator with delegate keys {} {} and validator key {}",
-            k.eth_key.to_public_key().unwrap(),
+            k.eth_key.to_address(),
             k.orch_key.to_address(ADDRESS_PREFIX.as_str()).unwrap(),
             k.validator_key
                 .to_address(&format!("{}valoper", ADDRESS_PREFIX.as_str()))
@@ -252,17 +264,20 @@ pub async fn start_orchestrators(
         let grpc_client = GravityQueryClient::connect(COSMOS_NODE_GRPC.as_str())
             .await
             .unwrap();
-        // we have only one actual futures executor thread (see the actix runtime tag on our main function)
+
         // but that will execute all the orchestrators in our test in parallel
-        thread::spawn(move || {
+        // by spwaning to tokio's future executor
+        let _ = tokio::spawn(async move {
             let web30 = web30::client::Web3::new(ETH_NODE.as_str(), OPERATION_TIMEOUT);
+
             let contact = Contact::new(
                 COSMOS_NODE_GRPC.as_str(),
                 OPERATION_TIMEOUT,
                 ADDRESS_PREFIX.as_str(),
             )
             .unwrap();
-            let fut = orchestrator_main_loop(
+
+            let _ = orchestrator_main_loop(
                 k.orch_key,
                 k.eth_key,
                 web30,
@@ -271,9 +286,9 @@ pub async fn start_orchestrators(
                 gravity_address,
                 get_fee(),
                 config,
-            );
-            let system = System::new();
-            system.block_on(fut);
+                None,
+            )
+            .await;
         });
         // used to break out of the loop early to simulate one validator
         // not running an orchestrator

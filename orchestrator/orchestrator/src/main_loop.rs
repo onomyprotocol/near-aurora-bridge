@@ -16,17 +16,15 @@ use deep_space::error::CosmosGrpcError;
 use deep_space::Contact;
 use deep_space::{client::ChainStatus, utils::FeeInfo};
 use deep_space::{coin::Coin, private_key::PrivateKey as CosmosPrivateKey};
-use ethereum_gravity::utils::get_gravity_id;
-use futures::future::join;
-use futures::future::join3;
+use ethereum_gravity::utils::get_gravity_id_with_retry;
+use futures::future::{try_join, try_join3};
 use gravity_proto::cosmos_sdk_proto::cosmos::base::abci::v1beta1::TxResponse;
 use gravity_proto::gravity::query_client::QueryClient as GravityQueryClient;
+use gravity_utils::error::GravityError;
 use gravity_utils::types::GravityBridgeToolsConfig;
 use relayer::main_loop::relayer_main_loop;
-use std::process::exit;
 use std::time::Duration;
-use std::time::Instant;
-use tokio::time::sleep as delay_for;
+use tokio::time::sleep;
 use tonic::transport::Channel;
 use web30::client::Web3;
 
@@ -51,7 +49,8 @@ pub async fn orchestrator_main_loop(
     gravity_contract_address: EthAddress,
     user_fee_amount: Coin,
     config: GravityBridgeToolsConfig,
-) {
+    wait_time: Option<Duration>,
+) -> Result<(), GravityError> {
     let fee = user_fee_amount;
 
     let a = eth_oracle_main_loop(
@@ -62,6 +61,7 @@ pub async fn orchestrator_main_loop(
         gravity_contract_address,
         fee.clone(),
     );
+
     let b = eth_signer_main_loop(
         cosmos_key,
         ethereum_key,
@@ -70,21 +70,28 @@ pub async fn orchestrator_main_loop(
         grpc_client.clone(),
         gravity_contract_address,
         fee.clone(),
+        wait_time,
     );
+
     let c = relayer_main_loop(
         ethereum_key,
         web3,
         grpc_client.clone(),
         gravity_contract_address,
         &config.relayer,
+        wait_time,
     );
 
     // if the relayer is not enabled we just don't start the future
     if config.orchestrator.relayer_enabled {
-        join3(a, b, c).await;
-    } else {
-        join(a, b).await;
+        if let Err(e) = try_join3(a, b, c).await {
+            return Err(e);
+        }
+    } else if let Err(e) = try_join(a, b).await {
+        return Err(e);
     }
+
+    Ok(())
 }
 
 const DELAY: Duration = Duration::from_secs(5);
@@ -98,9 +105,10 @@ pub async fn eth_oracle_main_loop(
     grpc_client: GravityQueryClient<Channel>,
     gravity_contract_address: EthAddress,
     fee: Coin,
-) {
+) -> Result<(), GravityError> {
     let our_cosmos_address = cosmos_key.to_address(&contact.get_prefix()).unwrap();
     let long_timeout_web30 = Web3::new(&web3.get_url(), Duration::from_secs(120));
+
     let mut last_checked_block: Uint256 = get_last_checked_block(
         grpc_client.clone(),
         our_cosmos_address,
@@ -109,81 +117,81 @@ pub async fn eth_oracle_main_loop(
         &long_timeout_web30,
     )
     .await;
+
     info!("Oracle resync complete, Oracle now operational");
     let mut grpc_client = grpc_client;
 
     loop {
-        let loop_start = Instant::now();
+        let _ = tokio::join!(
+            async {
+                let latest_eth_block = web3.eth_block_number().await;
+                let latest_cosmos_block = contact.get_chain_status().await;
 
-        let latest_eth_block = web3.eth_block_number().await;
-        let latest_cosmos_block = contact.get_chain_status().await;
-        match (latest_eth_block, latest_cosmos_block) {
-            (Ok(latest_eth_block), Ok(ChainStatus::Moving { block_height })) => {
-                trace!(
-                    "Latest Eth block {} Latest Cosmos block {}",
-                    latest_eth_block,
-                    block_height,
-                );
-            }
-            (Ok(_latest_eth_block), Ok(ChainStatus::Syncing)) => {
-                warn!("Cosmos node syncing, Eth oracle paused");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Ok(_latest_eth_block), Ok(ChainStatus::WaitingToStart)) => {
-                warn!("Cosmos node syncing waiting for chain start, Eth oracle paused");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Ok(_), Err(_)) => {
-                warn!("Could not contact Cosmos grpc, trying again");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Err(_), Ok(_)) => {
-                warn!("Could not contact Eth node, trying again");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Err(_), Err(_)) => {
-                error!("Could not reach Ethereum or Cosmos rpc!");
-                delay_for(DELAY).await;
-                continue;
-            }
-        }
+                match (latest_eth_block, latest_cosmos_block) {
+                    (Ok(latest_eth_block), Ok(ChainStatus::Moving { block_height })) => {
+                        trace!(
+                            "Latest Eth block {} Latest Cosmos block {}",
+                            latest_eth_block,
+                            block_height,
+                        );
+                    }
+                    (Ok(_latest_eth_block), Ok(ChainStatus::Syncing)) => {
+                        warn!("Cosmos node syncing, Eth oracle paused");
+                        sleep(DELAY).await;
+                        return None;
+                    }
+                    (Ok(_latest_eth_block), Ok(ChainStatus::WaitingToStart)) => {
+                        warn!("Cosmos node syncing waiting for chain start, Eth oracle paused");
+                        sleep(DELAY).await;
+                        return None;
+                    }
+                    (Ok(_), Err(_)) => {
+                        warn!("Could not contact Cosmos grpc, trying again");
+                        sleep(DELAY).await;
+                        return None;
+                    }
+                    (Err(_), Ok(_)) => {
+                        warn!("Could not contact Eth node, trying again");
+                        sleep(DELAY).await;
+                        return None;
+                    }
+                    (Err(_), Err(_)) => {
+                        error!("Could not reach Ethereum or Cosmos rpc!");
+                        sleep(DELAY).await;
+                        return None;
+                    }
+                }
 
-        // Relays events from Ethereum -> Cosmos
-        match check_for_events(
-            &web3,
-            &contact,
-            &mut grpc_client,
-            gravity_contract_address,
-            cosmos_key,
-            fee.clone(),
-            last_checked_block.clone(),
-        )
-        .await
-        {
-            Ok(new_block) => last_checked_block = new_block,
-            Err(e) => error!(
-                "Failed to get events for block range, Check your Eth node and Cosmos gRPC {:?}",
-                e
-            ),
-        }
+                // Relays events from Ethereum -> Cosmos
+                match check_for_events(
+                    &web3,
+                    &contact,
+                    &mut grpc_client,
+                    gravity_contract_address,
+                    cosmos_key,
+                    fee.clone(),
+                    last_checked_block.clone(),
+                )
+                .await
+                {
+                    Ok(new_block) => last_checked_block = new_block,
+                    Err(e) => error!(
+                        "Failed to get events for block range, Check your Eth node and Cosmos gRPC {:?}",
+                        e
+                    ),
+                }
 
-        // a bit of logic that tires to keep things running every LOOP_SPEED seconds exactly
-        // this is not required for any specific reason. In fact we expect and plan for
-        // the timing being off significantly
-        let elapsed = Instant::now() - loop_start;
-        if elapsed < ETH_ORACLE_LOOP_SPEED {
-            delay_for(ETH_ORACLE_LOOP_SPEED - elapsed).await;
-        }
+                Some(())
+            },
+            tokio::time::sleep(ETH_SIGNER_LOOP_SPEED)
+        );
     }
 }
 
 /// The eth_signer simply signs off on any batches or validator sets provided by the validator
 /// since these are provided directly by a trusted Cosmsos node they can simply be assumed to be
 /// valid and signed off on.
+#[allow(clippy::too_many_arguments)]
 pub async fn eth_signer_main_loop(
     cosmos_key: CosmosPrivateKey,
     ethereum_key: EthPrivateKey,
@@ -192,165 +200,178 @@ pub async fn eth_signer_main_loop(
     grpc_client: GravityQueryClient<Channel>,
     gravity_contract_address: EthAddress,
     fee: Coin,
-) {
+    wait_time: Option<Duration>,
+) -> Result<(), GravityError> {
     let our_cosmos_address = cosmos_key.to_address(&contact.get_prefix()).unwrap();
-    let our_ethereum_address = ethereum_key.to_public_key().unwrap();
+    let our_ethereum_address = ethereum_key.to_address();
     let mut grpc_client = grpc_client;
-    let gravity_id = get_gravity_id(gravity_contract_address, our_ethereum_address, &web3).await;
+
+    let gravity_id = get_gravity_id_with_retry(
+        gravity_contract_address,
+        our_ethereum_address,
+        &web3,
+        wait_time,
+    )
+    .await;
+
+    // timeout expired - ethreum node not reachable
     if gravity_id.is_err() {
-        error!("Failed to get GravityID, check your Eth node");
-        return;
+        return Err(GravityError::UnrecoverableError(
+            "Failed to get GravityID, check your ethereum node".into(),
+        ));
     }
+
     let gravity_id = gravity_id.unwrap();
 
     loop {
-        let loop_start = Instant::now();
-
-        let latest_eth_block = web3.eth_block_number().await;
-        let latest_cosmos_block = contact.get_chain_status().await;
-        match (latest_eth_block, latest_cosmos_block) {
-            (Ok(latest_eth_block), Ok(ChainStatus::Moving { block_height })) => {
-                trace!(
-                    "Latest Eth block {} Latest Cosmos block {}",
-                    latest_eth_block,
-                    block_height,
-                );
-            }
-            (Ok(_latest_eth_block), Ok(ChainStatus::Syncing)) => {
-                warn!("Cosmos node syncing, Eth signer paused");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Ok(_latest_eth_block), Ok(ChainStatus::WaitingToStart)) => {
-                warn!("Cosmos node syncing waiting for chain start, Eth signer paused");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Ok(_), Err(_)) => {
-                warn!("Could not contact Cosmos grpc, trying again");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Err(_), Ok(_)) => {
-                warn!("Could not contact Eth node, trying again");
-                delay_for(DELAY).await;
-                continue;
-            }
-            (Err(_), Err(_)) => {
-                error!("Could not reach Ethereum or Cosmos rpc!");
-                delay_for(DELAY).await;
-                continue;
-            }
-        }
-
-        // sign the last unsigned valsets
-        match get_oldest_unsigned_valsets(
-            &mut grpc_client,
-            our_cosmos_address,
-            contact.get_prefix(),
-        )
-        .await
-        {
-            Ok(valsets) => {
-                if valsets.is_empty() {
-                    trace!("No validator sets to sign, node is caught up!")
-                } else {
-                    info!(
-                        "Sending {} valset confirms starting with {}",
-                        valsets.len(),
-                        valsets[0].nonce
-                    );
-                    let res = send_valset_confirms(
-                        &contact,
-                        ethereum_key,
-                        fee.clone(),
-                        valsets,
-                        cosmos_key,
-                        gravity_id.clone(),
-                    )
-                    .await;
-                    trace!("Valset confirm result is {:?}", res);
-                    check_for_fee_error(res, &fee);
+        let (async_result, _) = tokio::join!(
+            async {
+                let latest_eth_block = web3.eth_block_number().await;
+                let latest_cosmos_block = contact.get_chain_status().await;
+                match (latest_eth_block, latest_cosmos_block) {
+                    (Ok(latest_eth_block), Ok(ChainStatus::Moving { block_height })) => {
+                        trace!(
+                            "Latest Eth block {} Latest Cosmos block {}",
+                            latest_eth_block,
+                            block_height,
+                        );
+                    }
+                    (Ok(_latest_eth_block), Ok(ChainStatus::Syncing)) => {
+                        warn!("Cosmos node syncing, Eth signer paused");
+                        sleep(DELAY).await;
+                        return Ok::<(), GravityError>(());
+                    }
+                    (Ok(_latest_eth_block), Ok(ChainStatus::WaitingToStart)) => {
+                        warn!("Cosmos node syncing waiting for chain start, Eth signer paused");
+                        sleep(DELAY).await;
+                        return Ok(());
+                    }
+                    (Ok(_), Err(_)) => {
+                        warn!("Could not contact Cosmos grpc, trying again");
+                        sleep(DELAY).await;
+                        return Ok(());
+                    }
+                    (Err(_), Ok(_)) => {
+                        warn!("Could not contact Eth node, trying again");
+                        sleep(DELAY).await;
+                        return Ok(());
+                    }
+                    (Err(_), Err(_)) => {
+                        error!("Could not reach Ethereum or Cosmos rpc!");
+                        sleep(DELAY).await;
+                        return Ok(());
+                    }
                 }
-            }
-            Err(e) => trace!(
-                "Failed to get unsigned valsets, check your Cosmos gRPC {:?}",
-                e
-            ),
-        }
 
-        // sign the last unsigned batch, TODO check if we already have signed this
-        match get_oldest_unsigned_transaction_batch(
-            &mut grpc_client,
-            our_cosmos_address,
-            contact.get_prefix(),
-        )
-        .await
-        {
-            Ok(Some(last_unsigned_batch)) => {
-                info!(
-                    "Sending batch confirm for {}:{} with {} in fees",
-                    last_unsigned_batch.token_contract,
-                    last_unsigned_batch.nonce,
-                    last_unsigned_batch.total_fee.amount
-                );
-                let res = send_batch_confirm(
-                    &contact,
-                    ethereum_key,
-                    fee.clone(),
-                    vec![last_unsigned_batch],
-                    cosmos_key,
-                    gravity_id.clone(),
+                // sign the last unsigned valsets
+                match get_oldest_unsigned_valsets(
+                    &mut grpc_client,
+                    our_cosmos_address,
+                    contact.get_prefix(),
                 )
-                .await;
-                trace!("Batch confirm result is {:?}", res);
-                check_for_fee_error(res, &fee);
-            }
-            Ok(None) => trace!("No unsigned batches! Everything good!"),
-            Err(e) => trace!(
-                "Failed to get unsigned Batches, check your Cosmos gRPC {:?}",
-                e
-            ),
-        }
+                .await
+                {
+                    Ok(valsets) => {
+                        if valsets.is_empty() {
+                            trace!("No validator sets to sign, node is caught up!")
+                        } else {
+                            info!(
+                                "Sending {} valset confirms starting with {}",
+                                valsets.len(),
+                                valsets[0].nonce
+                            );
+                            let res = send_valset_confirms(
+                                &contact,
+                                ethereum_key,
+                                fee.clone(),
+                                valsets,
+                                cosmos_key,
+                                gravity_id.clone(),
+                            )
+                            .await;
+                            trace!("Valset confirm result is {:?}", res);
+                            check_for_fee_error(res, &fee)?;
+                        }
+                    }
+                    Err(e) => error!(
+                        "Failed to get unsigned valsets, check your Cosmos gRPC {:?}",
+                        e
+                    ),
+                }
 
-        match get_oldest_unsigned_logic_call(
-            &mut grpc_client,
-            our_cosmos_address,
-            contact.get_prefix(),
-        )
-        .await
-        {
-            Ok(Some(last_unsigned_call)) => {
-                info!(
-                    "Sending Logic call confirm for {}:{}",
-                    bytes_to_hex_str(&last_unsigned_call.invalidation_id),
-                    last_unsigned_call.invalidation_nonce
-                );
-                let res = send_logic_call_confirm(
-                    &contact,
-                    ethereum_key,
-                    fee.clone(),
-                    vec![last_unsigned_call],
-                    cosmos_key,
-                    gravity_id.clone(),
+                // sign the last unsigned batch, TODO check if we already have signed this
+                match get_oldest_unsigned_transaction_batch(
+                    &mut grpc_client,
+                    our_cosmos_address,
+                    contact.get_prefix(),
                 )
-                .await;
-                trace!("call confirm result is {:?}", res);
-                check_for_fee_error(res, &fee);
-            }
-            Ok(None) => trace!("No unsigned logic call! Everything good!"),
-            Err(e) => info!(
-                "Failed to get unsigned Logic Calls, check your Cosmos gRPC {:?}",
-                e
-            ),
-        }
+                .await
+                {
+                    Ok(Some(last_unsigned_batch)) => {
+                        info!(
+                            "Sending batch confirm for {}:{} with {} in fees",
+                            last_unsigned_batch.token_contract,
+                            last_unsigned_batch.nonce,
+                            last_unsigned_batch.total_fee.amount
+                        );
+                        let res = send_batch_confirm(
+                            &contact,
+                            ethereum_key,
+                            fee.clone(),
+                            vec![last_unsigned_batch],
+                            cosmos_key,
+                            gravity_id.clone(),
+                        )
+                        .await;
+                        trace!("Batch confirm result is {:?}", res);
+                        check_for_fee_error(res, &fee)?;
+                    }
+                    Ok(None) => trace!("No unsigned batches! Everything good!"),
+                    Err(e) => trace!(
+                        "Failed to get unsigned Batches, check your Cosmos gRPC {:?}",
+                        e
+                    ),
+                }
 
-        // a bit of logic that tires to keep things running every LOOP_SPEED seconds exactly
-        // this is not required for any specific reason. In fact we expect and plan for
-        // the timing being off significantly
-        let elapsed = Instant::now() - loop_start;
-        if elapsed < ETH_SIGNER_LOOP_SPEED {
-            delay_for(ETH_SIGNER_LOOP_SPEED - elapsed).await;
+                match get_oldest_unsigned_logic_call(
+                    &mut grpc_client,
+                    our_cosmos_address,
+                    contact.get_prefix(),
+                )
+                .await
+                {
+                    Ok(Some(last_unsigned_call)) => {
+                        info!(
+                            "Sending Logic call confirm for {}:{}",
+                            bytes_to_hex_str(&last_unsigned_call.invalidation_id),
+                            last_unsigned_call.invalidation_nonce
+                        );
+                        let res = send_logic_call_confirm(
+                            &contact,
+                            ethereum_key,
+                            fee.clone(),
+                            vec![last_unsigned_call],
+                            cosmos_key,
+                            gravity_id.clone(),
+                        )
+                        .await;
+                        trace!("call confirm result is {:?}", res);
+                        check_for_fee_error(res, &fee)?;
+                    }
+                    Ok(None) => trace!("No unsigned logic call! Everything good!"),
+                    Err(e) => info!(
+                        "Failed to get unsigned Logic Calls, check your Cosmos gRPC {:?}",
+                        e
+                    ),
+                }
+
+                Ok(())
+            },
+            sleep(ETH_SIGNER_LOOP_SPEED)
+        );
+
+        if let Err(e) = async_result {
+            return Err(e);
         }
     }
 }
@@ -358,7 +379,10 @@ pub async fn eth_signer_main_loop(
 /// Checks for fee errors on our confirm submission transactions, a failure here
 /// can be fatal and cause slashing so we want to warn the user and exit. There is
 /// no point in running if we can't perform our most important function
-fn check_for_fee_error(res: Result<TxResponse, CosmosGrpcError>, fee: &Coin) {
+fn check_for_fee_error(
+    res: Result<TxResponse, CosmosGrpcError>,
+    fee: &Coin,
+) -> Result<(), GravityError> {
     if let Err(CosmosGrpcError::InsufficientFees { fee_info }) = res {
         match fee_info {
             FeeInfo::InsufficientFees { min_fees } => {
@@ -368,11 +392,20 @@ fn check_for_fee_error(res: Result<TxResponse, CosmosGrpcError>, fee: &Coin) {
                     Coin::display_list(&min_fees)
                 );
                 error!("Correct fee argument immediately! You will be slashed within a few hours if you fail to do so");
-                exit(1);
+                return Err(GravityError::UnrecoverableError(
+                    "Specified fee value too small".into(),
+                ));
             }
             FeeInfo::InsufficientGas { .. } => {
-                panic!("Hardcoded gas amounts insufficient!");
+                return Err(GravityError::UnrecoverableError(
+                    "Hardcoded gas amounts insufficient!".into(),
+                ));
             }
         }
+    } else if res.is_err() {
+        let error = res.err();
+        error!("{:?}", error);
     }
+
+    Ok(())
 }

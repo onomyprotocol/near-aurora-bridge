@@ -1,8 +1,8 @@
 [package]
-name = "test_runner"
-version = "0.1.0"
 authors = ["Justin Kilpatrick <justin@althea.net>"]
 edition = "2018"
+name = "test_runner"
+version = "0.1.0"
 
 # only becuase I like - more in names
 [[bin]]
@@ -10,31 +10,27 @@ name = "test-runner"
 path = "src/main.rs"
 
 [dependencies]
-ethereum_gravity = {path = "../ethereum_gravity"}
-cosmos_gravity = {path = "../cosmos_gravity"}
-gravity_utils = {path = "../gravity_utils"}
-gravity_proto = {path = "../gravity_proto/"}
-orchestrator = {path = "../orchestrator/"}
-
 bytes = "1"
+clarity = "0.5"
+cosmos_gravity = {path = "../cosmos_gravity"}
+deep_space = "2.4"
+docopt = "1"
+env_logger = "0.9"
+ethereum_gravity = {path = "../ethereum_gravity"}
+futures = "0.3"
+gravity_proto = {path = "../gravity_proto/"}
+gravity_utils = {path = "../gravity_utils"}
+lazy_static = "1"
+log = "0.4"
+num256 = "0.3"
+orchestrator = {path = "../orchestrator/"}
 prost = "0.7"
 prost-types = "0.7"
-deep_space = "2.4"
-serde_derive = "1.0"
-clarity = "0.4"
-docopt = "1"
-serde = "1.0"
-actix = "0.12"
-actix-web = {version = "3", features=["openssl"]}
-actix-rt = "2.2"
-lazy_static = "1"
-url = "2"
-web30 = "0.15"
-num256 = "0.3"
-log = "0.4"
-env_logger = "0.9"
-tokio = "1.4.0"
 rand = "0.8"
-tonic = "0.4"
-futures = "0.3"
+serde = "1.0"
+serde_derive = "1.0"
 serde_json = "1.0"
+tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
+tonic = "0.4"
+url = "2"
+web30 = {git = "https://github.com/onomyprotocol/web30.git", rev = "7dd3533a3690a54c56ec79f72df2c8f6c858625b"}

@@ -12,7 +12,9 @@ use cosmos_gravity::{send::submit_bad_signature_evidence, utils::BadSignatureEvi
 use deep_space::PrivateKey;
 use deep_space::{Coin, Contact};
 use ethereum_gravity::message_signatures::encode_valset_confirm_hashed;
-use ethereum_gravity::{message_signatures::encode_valset_confirm, utils::get_gravity_id};
+use ethereum_gravity::{
+    message_signatures::encode_valset_confirm, utils::get_gravity_id_with_retry,
+};
 use gravity_proto::cosmos_sdk_proto::cosmos::staking::v1beta1::QueryValidatorsRequest;
 use gravity_utils::types::{Valset, ValsetMember};
 use web30::client::Web3;
@@ -32,7 +34,7 @@ pub async fn evidence_based_slashing(
     // our slashing victim is just the first validator
     let cosmos_private_key = keys[0].validator_key;
     let eth_private_key = keys[0].eth_key;
-    let eth_addr = eth_private_key.to_public_key().unwrap();
+    let eth_addr = eth_private_key.to_address();
     // reporter is another validator using their delegate key
     let submitter_private_key = keys[1].orch_key;
     // this is a false valset, one that happens to contain only the
@@ -48,11 +50,12 @@ pub async fn evidence_based_slashing(
         reward_amount: 0u8.into(),
         reward_token: None,
     };
-    let gravity_id = get_gravity_id(gravity_address, eth_addr, web30)
+    let gravity_id = get_gravity_id_with_retry(gravity_address, eth_addr, web30, None)
         .await
         .unwrap();
-    let message = encode_valset_confirm(gravity_id.clone(), false_valset.clone());
-    let checkpoint = encode_valset_confirm_hashed(gravity_id.clone(), false_valset.clone());
+
+    let message = encode_valset_confirm(gravity_id.clone(), &false_valset);
+    let checkpoint = encode_valset_confirm_hashed(gravity_id.clone(), &false_valset);
     let eth_signature = eth_private_key.sign_ethereum_msg(&message);
     info!(
         "Created signature {} over checkpoint {} with Gravity ID {} using address {}",

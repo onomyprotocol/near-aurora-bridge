@@ -9,6 +9,7 @@ module/vendor
 
 # IDE files
 .idea/
+module/vendor
 
 #Hardhat files
 cache

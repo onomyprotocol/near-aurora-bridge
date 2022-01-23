@@ -42,9 +42,9 @@ mod valset_rewards;
 mod valset_stress;
 
 /// the timeout for individual requests
-const OPERATION_TIMEOUT: Duration = Duration::from_secs(30);
+const OPERATION_TIMEOUT: Duration = Duration::from_secs(120);
 /// the timeout for the total system
-const TOTAL_TIMEOUT: Duration = Duration::from_secs(300);
+const TOTAL_TIMEOUT: Duration = Duration::from_secs(600);
 
 // Retrieve values from runtime ENV vars
 lazy_static! {
@@ -63,7 +63,7 @@ lazy_static! {
 /// this value reflects the contents of /tests/container-scripts/setup-validator.sh
 /// and is used to compute if a stake change is big enough to trigger a validator set
 /// update since we want to make several such changes intentionally
-pub const STAKE_SUPPLY_PER_VALIDATOR: u128 = 1000000000;
+pub const STAKE_SUPPLY_PER_VALIDATOR: u128 = 1000000000000000000000;
 /// this is the amount each validator bonds at startup
 pub const STARTING_STAKE_PER_VALIDATOR: u128 = STAKE_SUPPLY_PER_VALIDATOR / 2;
 
@@ -75,7 +75,7 @@ lazy_static! {
         "0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7"
             .parse()
             .unwrap();
-    static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_public_key().unwrap();
+    static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
 }
 
 /// Gets the standard non-token fee for the testnet. We deploy the test chain with STAKE
@@ -112,7 +112,7 @@ pub fn should_deploy_contracts() -> bool {
     }
 }
 
-#[actix_rt::main]
+#[tokio::main]
 pub async fn main() {
     env_logger::init();
     info!("Starting Gravity test-runner");

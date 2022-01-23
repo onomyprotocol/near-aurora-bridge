@@ -1,10 +1,11 @@
 //! This is the testing module for relay market functionality, testing that
 //! relayers utilize web30 to interact with a testnet to obtain coin swap values
 //! and determine whether relays should happen or not
-use std::time::{Duration, Instant};
-
 use crate::happy_path::test_erc20_deposit;
-use crate::utils::{check_cosmos_balance, send_one_eth, start_orchestrators, ValidatorKeys};
+use crate::utils::{
+    check_cosmos_balance, create_market_test_config, send_one_eth, start_orchestrators,
+    ValidatorKeys,
+};
 use crate::MINER_PRIVATE_KEY;
 use crate::TOTAL_TIMEOUT;
 use crate::{one_eth, MINER_ADDRESS};
@@ -18,9 +19,9 @@ use deep_space::private_key::PrivateKey as CosmosPrivateKey;
 use deep_space::{Address, Contact};
 use ethereum_gravity::utils::get_tx_batch_nonce;
 use gravity_proto::gravity::query_client::QueryClient as GravityQueryClient;
-use gravity_utils::types::GravityBridgeToolsConfig;
 use rand::Rng;
-use tokio::time::sleep as delay_for;
+use std::time::Duration;
+use tokio::time::sleep;
 use tonic::transport::Channel;
 use web30::amm::{DAI_CONTRACT_ADDRESS, WETH_CONTRACT_ADDRESS};
 use web30::client::Web3;
@@ -44,8 +45,9 @@ async fn test_batches(
     gravity_address: EthAddress,
 ) {
     // Start Orchestrators
-    let default_config = GravityBridgeToolsConfig::default();
-    start_orchestrators(keys.clone(), gravity_address, false, default_config).await;
+    let relay_market_config = create_market_test_config();
+    start_orchestrators(keys.clone(), gravity_address, false, relay_market_config).await;
+
     test_good_batch(
         web30,
         grpc_client,
@@ -78,7 +80,7 @@ async fn setup_batch_test(
     let mut grpc_client = grpc_client.clone();
     // Acquire 10,000 WETH
     let weth_acquired = web30
-        .wrap_eth(one_eth() * 10000u16.into(), *MINER_PRIVATE_KEY, None)
+        .wrap_eth(one_eth() * 10000u16.into(), *MINER_PRIVATE_KEY, None, None)
         .await;
     assert!(
         !weth_acquired.is_err(),
@@ -93,6 +95,7 @@ async fn setup_batch_test(
             erc20_contract,
             None,
             one_eth() * 1000u16.into(),
+            None,
             None,
             None,
             None,
@@ -113,7 +116,7 @@ async fn setup_batch_test(
         .to_address(ADDRESS_PREFIX.as_str())
         .unwrap();
     let dest_eth_private_key = EthPrivateKey::from_slice(&secret).unwrap();
-    let dest_eth_address = dest_eth_private_key.to_public_key().unwrap();
+    let dest_eth_address = dest_eth_private_key.to_address();
 
     // Send the generated address 300 dai from ethereum to cosmos
     for _ in 0u32..3 {
@@ -191,7 +194,7 @@ async fn wait_for_batch(
     expect_batch: bool,
     web30: &Web3,
     contact: &Contact,
-    mut grpc_client: &mut GravityQueryClient<Channel>,
+    grpc_client: &mut GravityQueryClient<Channel>,
     requester_address: Address,
     erc20_contract: EthAddress,
     gravity_address: EthAddress,
@@ -201,47 +204,54 @@ async fn wait_for_batch(
         .await
         .unwrap();
 
-    get_oldest_unsigned_transaction_batch(
-        &mut grpc_client,
-        requester_address,
-        contact.get_prefix(),
-    )
-    .await
-    .expect("Failed to get batch to sign");
+    get_oldest_unsigned_transaction_batch(grpc_client, requester_address, contact.get_prefix())
+        .await
+        .expect("Failed to get batch to sign");
 
-    let mut current_eth_batch_nonce =
+    let starting_batch_nonce =
         get_tx_batch_nonce(gravity_address, erc20_contract, *MINER_ADDRESS, web30)
             .await
             .expect("Failed to get current eth valset");
-    let starting_batch_nonce = current_eth_batch_nonce;
 
-    let start = Instant::now();
-    while starting_batch_nonce == current_eth_batch_nonce {
-        info!(
-            "Batch is not yet submitted {}>, waiting",
-            starting_batch_nonce
-        );
-        current_eth_batch_nonce =
-            get_tx_batch_nonce(gravity_address, erc20_contract, *MINER_ADDRESS, web30)
-                .await
-                .expect("Failed to get current eth tx batch nonce");
-        delay_for(Duration::from_secs(4)).await;
-        if Instant::now() - start > OPERATION_TIMEOUT {
+    match tokio::time::timeout(OPERATION_TIMEOUT, async {
+        loop {
+            match get_tx_batch_nonce(gravity_address, erc20_contract, *MINER_ADDRESS, web30).await {
+                Err(_) => panic!("Failed to get current eth tx batch nonce"),
+                Ok(current_batch_nonce) => {
+                    if current_batch_nonce != starting_batch_nonce {
+                        return current_batch_nonce;
+                    } else {
+                        info!(
+                            "Batch is not yet submitted {}>, waiting",
+                            current_batch_nonce
+                        );
+                    }
+                }
+            }
+
+            sleep(Duration::from_secs(4)).await;
+        }
+    })
+    .await
+    {
+        Err(_) => {
             if expect_batch {
-                panic!("Failed to submit transaction batch set");
+                panic!("Failed to submit transaction batch set")
             } else {
-                break;
+                starting_batch_nonce
             }
         }
-    }
-    if !expect_batch && starting_batch_nonce != current_eth_batch_nonce {
-        panic!(
-            "Expected to not have a batch update, but observed nonce {} change to {}",
-            starting_batch_nonce, current_eth_batch_nonce
-        );
-    }
+        Ok(current_eth_batch_nonce) => {
+            if !expect_batch && starting_batch_nonce != current_eth_batch_nonce {
+                panic!(
+                    "Expected to not have a batch update, but observed nonce {} change to {}",
+                    starting_batch_nonce, current_eth_batch_nonce
+                );
+            }
 
-    current_eth_batch_nonce
+            current_eth_batch_nonce
+        }
+    }
 }
 
 async fn test_good_batch(

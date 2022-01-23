@@ -68,6 +68,10 @@ func TestGenesisStateValidate(t *testing.T) {
 					Denom:  "",
 					Amount: types.Int{},
 				},
+				Erc20ToDenomPermanentSwap: ERC20ToDenom{
+					Erc20: "",
+					Denom: "denom1",
+				},
 			},
 			LastObservedNonce:  0,
 			Valsets:            []*Valset{},

@@ -11,7 +11,7 @@ use web30::{client::Web3, types::TransactionRequest};
 /// to submit the provided logic call
 #[allow(clippy::too_many_arguments)]
 pub async fn send_eth_logic_call(
-    current_valset: Valset,
+    current_valset: &Valset,
     call: LogicCall,
     confirms: &[LogicCallConfirmResponse],
     web3: &Web3,
@@ -21,7 +21,7 @@ pub async fn send_eth_logic_call(
     our_eth_key: EthPrivateKey,
 ) -> Result<(), GravityError> {
     let new_call_nonce = call.invalidation_nonce;
-    let eth_address = our_eth_key.to_public_key().unwrap();
+    let eth_address = our_eth_key.to_address();
     info!(
         "Ordering signatures and submitting LogicCall {}:{} to Ethereum",
         bytes_to_hex_str(&call.invalidation_id),
@@ -90,7 +90,7 @@ pub async fn send_eth_logic_call(
 
 /// Returns the cost in Eth of sending this batch
 pub async fn estimate_logic_call_cost(
-    current_valset: Valset,
+    current_valset: &Valset,
     call: LogicCall,
     confirms: &[LogicCallConfirmResponse],
     web3: &Web3,
@@ -98,7 +98,7 @@ pub async fn estimate_logic_call_cost(
     gravity_id: String,
     our_eth_key: EthPrivateKey,
 ) -> Result<GasCost, GravityError> {
-    let our_eth_address = our_eth_key.to_public_key().unwrap();
+    let our_eth_address = our_eth_key.to_address();
     let our_balance = web3.eth_get_balance(our_eth_address).await?;
     let our_nonce = web3.eth_get_transaction_count(our_eth_address).await?;
     let gas_limit = min((u64::MAX - 1).into(), our_balance.clone());
@@ -126,12 +126,12 @@ pub async fn estimate_logic_call_cost(
 
 /// Encodes the logic call payload for both cost estimation and submission to EThereum
 fn encode_logic_call_payload(
-    current_valset: Valset,
+    current_valset: &Valset,
     call: &LogicCall,
     confirms: &[LogicCallConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {
-    let current_valset_token = encode_valset_struct(&current_valset);
+    let current_valset_token = encode_valset_struct(current_valset);
     let hash = encode_logic_call_confirm_hashed(gravity_id, call.clone());
     let sig_data = current_valset.order_sigs(&hash, confirms)?;
     let sig_arrays = to_arrays(sig_data);
@@ -313,7 +313,7 @@ mod tests {
         assert_eq!(
             bytes_to_hex_str(&encoded),
             bytes_to_hex_str(
-                &encode_logic_call_payload(valset, &logic_call, &[confirm], "foo".to_string())
+                &encode_logic_call_payload(&valset, &logic_call, &[confirm], "foo".to_string())
                     .unwrap()
             )
         );
