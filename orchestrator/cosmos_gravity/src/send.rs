@@ -69,10 +69,7 @@ pub async fn set_gravity_delegate_addresses(
         payer: None,
     };
 
-    let msg = Msg::new(
-        "/nab.v1.MsgSetOrchestratorAddress",
-        msg_set_orch_address,
-    );
+    let msg = Msg::new("/nab.v1.MsgSetOrchestratorAddress", msg_set_orch_address);
 
     let args = contact.get_message_args(our_address, fee).await?;
     trace!("got optional tx info");

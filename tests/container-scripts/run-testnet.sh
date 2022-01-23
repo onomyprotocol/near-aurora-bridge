@@ -43,12 +43,12 @@ done
 # consumes a lot of processing power
 sleep 10
 
-# GETH and TEST_TYPE may be unbound
+# Aurora and TEST_TYPE may be unbound
 set +u
 
 # Starts a hardhat RPC backend that is based off of a fork of Ethereum mainnet. This is useful in that we take
 # over the account of a major Uniswap liquidity provider and from there we can test many things that are infeasible
-# to do with a Geth backend, simply becuase reproducting that state on our testnet would be far too complex to consider
+# to do with a Aurora backend, simply becuase reproducting that state on our testnet would be far too complex to consider
 # The tradeoff here is that hardhat is an ETH dev environment and not an actual ETH implementation, as such the outputs
 # may be different. These two tests have different fork block heights they rely on
 if [[ $TEST_TYPE == *"ARBITRARY_LOGIC"* ]]; then
@@ -66,13 +66,4 @@ elif [[ ! -z "$HARDHAT" ]]; then
     pushd /nab/solidity
     npm run evm &
     popd
-# This starts the Geth backed testnet with no pre-seeded in state.
-# Geth is what we run in CI and in general, but developers frequently
-# perfer a faster experience provided by HardHat, also Mac's do not
-# work correctly with the Geth backend, there is some issue where the Docker VM on Mac platforms can't get
-# the right number of cpu cores and Geth goes crazy consuming all the processing power, on the other hand
-# hardhat doesn't work for some tests that depend on transactions waiting for blocks, so Geth is the default
-else
-    bash /nab/tests/container-scripts/run-eth.sh &
 fi
-sleep 10
