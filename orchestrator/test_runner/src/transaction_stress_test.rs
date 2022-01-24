@@ -273,7 +273,24 @@ pub async fn transaction_stress_test(
             for keys in user_keys.iter() {
                 let e_dest_addr = keys.eth_dest_address;
                 for token in erc20_addresses.iter() {
-                    let bal = web30.get_erc20_balance(*token, e_dest_addr).await.unwrap();
+                    info!("get_erc20_balance of token {} from {}", token, e_dest_addr);
+
+                    let mut retries = 10;
+                    let bal = loop {
+                        match web30.get_erc20_balance(*token, e_dest_addr).await {
+                            Err(e) => {
+                                error!("error response {}", e.to_string());
+                                retries -= 1;
+                                sleep(Duration::from_secs(1)).await;
+                                if retries == 0 {
+                                    panic! ("can't get_erc20_balance after {} retires ", retries)
+                                }
+                            },
+                            Ok(v) => break v,
+                        }
+                    };
+
+                    info!("got erc20_balance of token {} from {} = {}", token, e_dest_addr, bal);
                     if bal != send_amount.clone() {
                         if e_dest_addr == user_who_cancels.eth_address && bal == 0u8.into() {
                             info!("We successfully found the user who canceled their sends!");
