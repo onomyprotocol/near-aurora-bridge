@@ -267,21 +267,20 @@ pub async fn transaction_stress_test(
 
     let check_withdraws_from_ethereum = async {
         loop {
+            let mut waiting_count = 0;
             let mut good = true;
             let mut found_canceled = false;
 
             for keys in user_keys.iter() {
                 let e_dest_addr = keys.eth_dest_address;
                 for token in erc20_addresses.iter() {
-                    info!("get_erc20_balance of token {} from {}", token, e_dest_addr);
-
                     let mut retries = 10;
                     let bal = loop {
                         match web30.get_erc20_balance(*token, e_dest_addr).await {
                             Err(e) => {
-                                error!("error response {}", e.to_string());
+                                error!("Error on get_erc20_balance: {}", e.to_string());
                                 retries -= 1;
-                                sleep(Duration::from_secs(1)).await;
+                                sleep(Duration::from_nanos(100)).await;
                                 if retries == 0 {
                                     panic! ("can't get_erc20_balance after {} retires ", retries)
                                 }
@@ -290,13 +289,13 @@ pub async fn transaction_stress_test(
                         }
                     };
 
-                    info!("got erc20_balance of token {} from {} = {}", token, e_dest_addr, bal);
                     if bal != send_amount.clone() {
                         if e_dest_addr == user_who_cancels.eth_address && bal == 0u8.into() {
                             info!("We successfully found the user who canceled their sends!");
                             found_canceled = true;
                         } else {
                             good = false;
+                            waiting_count += 1;
                         }
                     }
                 }
@@ -310,6 +309,7 @@ pub async fn transaction_stress_test(
                 break;
             }
 
+            info!("Waiting {} updates out from {}", waiting_count, NUM_USERS * erc20_addresses.len());
             sleep(Duration::from_secs(5)).await;
         }
     };
