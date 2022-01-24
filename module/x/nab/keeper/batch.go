@@ -11,7 +11,7 @@ import (
 	"github.com/onomyprotocol/near-aurora-bridge/module/x/nab/types"
 )
 
-const OutgoingTxBatchSize = 10
+const OutgoingTxBatchSize = 30
 
 // BuildOutgoingTXBatch starts the following process chain:
 // - find bridged denominator for given voucher type
