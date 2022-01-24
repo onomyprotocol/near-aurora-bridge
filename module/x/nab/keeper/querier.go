@@ -341,14 +341,12 @@ func lastPendingBatchRequest(ctx sdk.Context, operatorAddr string, keeper Keeper
 	return res, nil
 }
 
-const MaxResults = 100 // todo: impl pagination
-
 // Gets MaxResults batches from store. Does not select by token type or anything
 func lastBatchesRequest(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 	var batches []*types.OutgoingTxBatch
 	keeper.IterateOutgoingTXBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
-		return len(batches) == MaxResults
+		return len(batches) == OutgoingTxBatchSize
 	})
 	if len(batches) == 0 {
 		return nil, nil
@@ -374,7 +372,7 @@ func lastLogicCallRequests(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 	var calls []*types.OutgoingLogicCall
 	keeper.IterateOutgoingLogicCalls(ctx, func(_ []byte, call *types.OutgoingLogicCall) bool {
 		calls = append(calls, call)
-		return len(calls) == MaxResults
+		return len(calls) == OutgoingTxBatchSize
 	})
 	if len(calls) == 0 {
 		return nil, nil

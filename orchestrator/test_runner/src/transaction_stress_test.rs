@@ -26,7 +26,7 @@ const TIMEOUT: Duration = Duration::from_secs(120);
 /// ERC20 sends = (erc20_addresses.len() * NUM_USERS)
 /// Gravity Deposits = (erc20_addresses.len() * NUM_USERS)
 /// Batches executed = erc20_addresses.len() * (NUM_USERS / 100)
-const NUM_USERS: usize = 100;
+const NUM_USERS: usize = 20;
 
 /// Perform a stress test by sending thousands of
 /// transactions and producing large batches
@@ -44,7 +44,7 @@ pub async fn transaction_stress_test(
     let no_relay_market_config = create_default_test_config();
     start_orchestrators(keys.clone(), gravity_address, false, no_relay_market_config).await;
 
-    // Generate 100 user keys to send ETH and multiple types of tokens
+    // Generate user keys to send ETH and multiple types of tokens
     let mut user_keys = Vec::new();
     for _ in 0..NUM_USERS {
         user_keys.push(get_user_key());
@@ -267,19 +267,35 @@ pub async fn transaction_stress_test(
 
     let check_withdraws_from_ethereum = async {
         loop {
+            let mut waiting_count = 0;
             let mut good = true;
             let mut found_canceled = false;
 
             for keys in user_keys.iter() {
                 let e_dest_addr = keys.eth_dest_address;
                 for token in erc20_addresses.iter() {
-                    let bal = web30.get_erc20_balance(*token, e_dest_addr).await.unwrap();
+                    let bal = match tokio::time::timeout(TIMEOUT, async {
+                        loop {
+                            if let Ok(res) = web30.get_erc20_balance(*token, e_dest_addr).await {
+                                return res;
+                            } else {
+                                sleep(Duration::from_millis(100)).await;
+                            }
+                        }
+                    })
+                    .await
+                    {
+                        Err(_) => panic!("Can't get_erc20_balance within {:?}", TIMEOUT),
+                        Ok(res) => res,
+                    };
+
                     if bal != send_amount.clone() {
                         if e_dest_addr == user_who_cancels.eth_address && bal == 0u8.into() {
                             info!("We successfully found the user who canceled their sends!");
                             found_canceled = true;
                         } else {
                             good = false;
+                            waiting_count += 1;
                         }
                     }
                 }
@@ -293,6 +309,11 @@ pub async fn transaction_stress_test(
                 break;
             }
 
+            info!(
+                "Waiting {} updates out from {}",
+                waiting_count,
+                NUM_USERS * erc20_addresses.len()
+            );
             sleep(Duration::from_secs(5)).await;
         }
     };
