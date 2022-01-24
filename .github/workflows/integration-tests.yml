@@ -2,7 +2,7 @@ name: Integration tests
 
 on:
   push:
-    branches: [master, main, dev]
+    branches: [master, main, dev, dzmitryhil/batch-size-change]
   pull_request:
     branches: [master, main, dev]
 
