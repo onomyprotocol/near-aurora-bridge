@@ -168,7 +168,7 @@ func (k Keeper) OutgoingTxBatches(
 	var batches []*types.OutgoingTxBatch
 	k.IterateOutgoingTXBatches(sdk.UnwrapSDKContext(c), func(_ []byte, batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
-		return len(batches) == MaxResults
+		return len(batches) == OutgoingTxBatchSize
 	})
 	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
 }
@@ -180,7 +180,7 @@ func (k Keeper) OutgoingLogicCalls(
 	var calls []*types.OutgoingLogicCall
 	k.IterateOutgoingLogicCalls(sdk.UnwrapSDKContext(c), func(_ []byte, call *types.OutgoingLogicCall) bool {
 		calls = append(calls, call)
-		return len(calls) == MaxResults
+		return len(calls) == OutgoingTxBatchSize
 	})
 	return &types.QueryOutgoingLogicCallsResponse{Calls: calls}, nil
 }
