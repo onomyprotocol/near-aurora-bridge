@@ -302,7 +302,7 @@ async fn submit_batches(
                         )
                         .await;
                         if res.is_err() {
-                            info!("Batch submission failed with {:?}", res);
+                            info!("Batch submission failed with  {:?}", res);
                         }
                     } else {
                         info!(
