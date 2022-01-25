@@ -49,6 +49,7 @@ pub async fn transaction_stress_test(
     for _ in 0..NUM_USERS {
         user_keys.push(get_user_key());
     }
+    info!("eth addresses for the test: {:?}", user_keys);
     // the sending eth addresses need Ethereum to send ERC20 tokens to the bridge
     let sending_eth_addresses: Vec<EthAddress> = user_keys.iter().map(|i| i.eth_address).collect();
     // the destination eth addresses need Ethereum to perform a contract call and get their erc20 balances
