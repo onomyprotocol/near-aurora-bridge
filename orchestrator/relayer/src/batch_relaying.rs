@@ -188,6 +188,8 @@ async fn submit_batches(
     possible_batches: HashMap<EthAddress, Vec<SubmittableBatch>>,
     config: &RelayerConfig,
 ) {
+    info!("submit_batches possible_batches: {:?}", possible_batches);
+
     let our_ethereum_address = ethereum_key.to_address();
     let ethereum_block_height = if let Ok(bn) = web3.eth_block_number().await {
         bn
@@ -241,7 +243,13 @@ async fn submit_batches(
                 }
 
                 let latest_cosmos_batch_nonce = oldest_signed_batch.clone().nonce;
+
+                info!("processing oldest_signed_batch: {:?}", &oldest_signed_batch);
+
                 if latest_cosmos_batch_nonce > latest_ethereum_batch {
+
+                    info!("try to send the oldest_signed_batch: {:?}", oldest_signed_batch);
+
                     let cost = ethereum_gravity::submit_batch::estimate_tx_batch_cost(
                         current_valset,
                         oldest_signed_batch.clone(),
@@ -279,6 +287,9 @@ async fn submit_batches(
                         true
                     };
                     if should_relay {
+
+                        info!("sending batch to send the oldest_signed_batch: {:?}", oldest_signed_batch);
+
                         let res = send_eth_transaction_batch(
                             current_valset,
                             oldest_signed_batch,
