@@ -44,7 +44,7 @@ mod valset_stress;
 /// the timeout for individual requests
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(120);
 /// the timeout for the total system
-1const TOTAL_TIMEOUT: Duration = Duration::from_secs(1200);
+const TOTAL_TIMEOUT: Duration = Duration::from_secs(1200);
 
 // Retrieve values from runtime ENV vars
 lazy_static! {
