@@ -16,7 +16,7 @@ pub const CONFIG_NAME: &str = "config.toml";
 /// to be hand edited.
 pub const KEYS_NAME: &str = "keys.json";
 /// The folder name for the config
-pub const CONFIG_FOLDER: &str = ".gbt";
+pub const CONFIG_FOLDER: &str = ".nabt";
 
 /// The keys storage struct, including encrypted and un-encrypted local keys
 /// un-encrypted keys provide for orchestrator start and relayer start functions
@@ -88,7 +88,7 @@ pub fn load_config(home_dir: &Path) -> Result<GravityBridgeToolsConfig, GravityE
     }
 
     let config =
-        fs::read_to_string(config_file).expect("Could not find config file! Run `gbt init`");
+        fs::read_to_string(config_file).expect("Could not find config file! Run `nabt init`");
 
     toml::from_str(&config)
         .map_err(|e| GravityError::UnrecoverableError(format!("Invalid config! {:?}", e)))
@@ -99,7 +99,7 @@ pub fn load_keys(home_dir: &Path) -> Result<KeyStorage, GravityError> {
     let keys_file = home_dir.join(CONFIG_FOLDER).with_file_name(KEYS_NAME);
     if !keys_file.exists() {
         return Err(GravityError::UnrecoverableError(format!(
-            "Keys file at {} not detected, use `gbt init` to generate a config.",
+            "Keys file at {} not detected, use `nabt init` to generate a config.",
             keys_file.to_str().unwrap()
         )));
     }
@@ -115,7 +115,7 @@ pub fn save_keys(home_dir: &Path, updated_keys: KeyStorage) {
     let config_file = home_dir.join(CONFIG_FOLDER).with_file_name(KEYS_NAME);
     if !config_file.exists() {
         info!(
-            "Config file at {} not detected, using defaults, use `gbt init` to generate a config.",
+            "Config file at {} not detected, using defaults, use `nabt init` to generate a config.",
             config_file.to_str().unwrap()
         );
     }

@@ -28,7 +28,7 @@ pub async fn register_orchestrator_address(
 
     if !args.no_save && !config_exists(&home_dir) {
         return Err(GravityError::UnrecoverableError(
-            "Please run `gbt init` before running this command!".into(),
+            "Please run `nabt init` before running this command!".into(),
         ));
     }
 
@@ -121,7 +121,7 @@ pub async fn register_orchestrator_address(
         eth_address, cosmos_address
     );
     if !args.no_save {
-        info!("Keys saved! You can now run `gbt orchestrator --fees <your fee value>`");
+        info!("Keys saved! You can now run `nabt orchestrator --fees <your fee value>`");
         let phrase = match (generated_cosmos, cosmos_phrase) {
             (Some(v), None) => v.to_string(),
             (None, Some(s)) => s,

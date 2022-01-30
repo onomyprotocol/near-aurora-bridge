@@ -1,6 +1,6 @@
 # ETH to Cosmos Oracle
 
-As part of operating the Gravity bridge all validators run an `Oracle` this Ethereum oracle is bundled into the `gbt` (Gravity bridge tools) binary along with the [ethereum signer](/docs/design/ethereum-signing.md). For a detailed look at the code involved in this process see [code structure intro](/docs/developer/code-structure.md)
+As part of operating the Gravity bridge all validators run an `Oracle` this Ethereum oracle is bundled into the `nabt` (Gravity bridge tools) binary along with the [ethereum signer](/docs/design/ethereum-signing.md). For a detailed look at the code involved in this process see [code structure intro](/docs/developer/code-structure.md)
 
 This process connects to an Ethereum node to monitor the Ethereum blockchain for new events involving the `Gravity Contract`.
 

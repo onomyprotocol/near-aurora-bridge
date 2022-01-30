@@ -35,7 +35,7 @@ async fn main() {
     // do TLS stuff.
     openssl_probe::init_ssl_cert_env_vars();
 
-    if let Err(gravity_error) = run_gbt().await {
+    if let Err(gravity_error) = run_nabt().await {
         match gravity_error {
             // exit only on unrecoverable errors
             GravityError::UnrecoverableError(error) => {
@@ -52,7 +52,7 @@ async fn main() {
     }
 }
 
-async fn run_gbt() -> Result<(), GravityError> {
+async fn run_nabt() -> Result<(), GravityError> {
     // parse the arguments
     let opts: Opts = Opts::parse();
 
