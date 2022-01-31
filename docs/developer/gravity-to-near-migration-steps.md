@@ -76,3 +76,8 @@ replace /nab/solidity to /nab/solidity in orchestrator/test_runner
 # docs
 
 replace /gravity with /nab Case sensitive !!!
+
+# workflow
+
+automated-release.yml -> gravity artifact to nab
+automated-release.yml -> gbt to nabt

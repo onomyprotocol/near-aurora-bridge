@@ -90,8 +90,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GOPATH }}/bin/gravity
-          asset_name: gravity
+          asset_path: ${{ env.GOPATH }}/bin/nab
+          asset_name: nab
           asset_content_type: application/bin
 
       # next we upload the contract artifact, in a production situation a previous version will
@@ -183,6 +183,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GOPATH }}/bin/gravity
-          asset_name: gravity-arm
+          asset_path: ${{ env.GOPATH }}/bin/nab
+          asset_name: nab-arm
           asset_content_type: application/bin
