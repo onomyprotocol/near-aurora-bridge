@@ -58,8 +58,8 @@ Replace "gravity{}" string with "nab{}"
 Replace "/nab.v1 with "/nab.v1   (can be substituted by normal codegen)
 Open orchestrator/proto_build  and cargo run
 Replace new import in  gravity_proto/src/lib.rs  : "prost/nab.v1.rs" -> "prost/nab.v1.rs"
-
-...TODO
+Rename gbt folder to nabt
+Rename all constants in the project from gbt to nabt
 
 * contrib gravity -> nab
 
@@ -76,3 +76,8 @@ replace /nab/solidity to /nab/solidity in orchestrator/test_runner
 # docs
 
 replace /gravity with /nab Case sensitive !!!
+
+# workflow
+
+automated-release.yml -> gravity artifact to nab
+automated-release.yml -> gbt to nabt

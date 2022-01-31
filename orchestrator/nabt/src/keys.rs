@@ -11,7 +11,7 @@ use std::path::Path;
 pub fn show_keys(home_dir: &Path, prefix: &str) -> Result<(), GravityError> {
     if !config_exists(home_dir) {
         return Err(GravityError::UnrecoverableError(
-            "Please run `gbt init` before running this command!".into(),
+            "Please run `nabt init` before running this command!".into(),
         ));
     }
     let keys = load_keys(home_dir)?;
@@ -39,7 +39,7 @@ pub fn show_keys(home_dir: &Path, prefix: &str) -> Result<(), GravityError> {
 pub fn set_eth_key(home_dir: &Path, opts: SetEthereumKeyOpts) -> Result<(), GravityError> {
     if !config_exists(home_dir) {
         return Err(GravityError::UnrecoverableError(
-            "Please run `gbt init` before running this command!".into(),
+            "Please run `nabt init` before running this command!".into(),
         ));
     }
     let mut keys = load_keys(home_dir)?;
@@ -56,7 +56,7 @@ pub fn set_orchestrator_key(
 ) -> Result<(), GravityError> {
     if !config_exists(home_dir) {
         return Err(GravityError::UnrecoverableError(
-            "Please run `gbt init` before running this command!".into(),
+            "Please run `nabt init` before running this command!".into(),
         ));
     }
     let res = PrivateKey::from_phrase(&opts.phrase, "");

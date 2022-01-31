@@ -10,7 +10,7 @@ use clarity::PrivateKey as EthPrivateKey;
 use deep_space::PrivateKey as CosmosPrivateKey;
 use deep_space::{address::Address as CosmosAddress, Coin};
 
-/// Gravity Bridge tools (gbt) provides tools for interacting with the Althea Gravity bridge for Cosmos based blockchains.
+/// Gravity Bridge tools (nabt) provides tools for interacting with the Althea Gravity bridge for Cosmos based blockchains.
 #[derive(Clap)]
 #[clap(version = env!("CARGO_PKG_VERSION"), author = "Justin Kilpatrick <justin@althea.net>")]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -22,7 +22,7 @@ pub struct Opts {
     #[clap(short, long)]
     pub quiet: bool,
     /// The home directory for Gravity Bridge Tools, by default
-    /// $HOME/.althea_gbt/
+    /// $HOME/.althea_nabt/
     #[clap(short, long, parse(from_str))]
     pub home: Option<PathBuf>,
     /// Set the address prefix for the Cosmos chain

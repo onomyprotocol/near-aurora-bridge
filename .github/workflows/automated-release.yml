@@ -61,15 +61,15 @@ jobs:
           prerelease: true
 
       # the Rust binaries, a loop would make this much more compact
-      - name: Upload Rust gbt
-        id: upload-rust-release-gbt
+      - name: Upload Rust nabt
+        id: upload-rust-release-nabt
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/gbt
-          asset_name: gbt
+          asset_path: ./orchestrator/target/x86_64-unknown-linux-musl/release/nabt
+          asset_name: nabt
           asset_content_type: application/bin
 
       - name: Upload Rust test runner
@@ -90,8 +90,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GOPATH }}/bin/gravity
-          asset_name: gravity
+          asset_path: ${{ env.GOPATH }}/bin/nab
+          asset_name: nab
           asset_content_type: application/bin
 
       # next we upload the contract artifact, in a production situation a previous version will
@@ -165,15 +165,15 @@ jobs:
           cd module
           GOARCH=arm64 make
 
-      - name: Upload Rust gbt ARM
-        id: upload-rust-release-gbt-arm
+      - name: Upload Rust nabt ARM
+        id: upload-rust-release-nabt-arm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/gbt
-          asset_name: gbt-arm
+          asset_path: ./orchestrator/target/aarch64-unknown-linux-musl/release/nabt
+          asset_name: nabt-arm
           asset_content_type: application/bin
 
       - name: Upload Go Release Asset ARM
@@ -183,6 +183,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GOPATH }}/bin/gravity
-          asset_name: gravity-arm
+          asset_path: ${{ env.GOPATH }}/bin/nab
+          asset_name: nab-arm
           asset_content_type: application/bin

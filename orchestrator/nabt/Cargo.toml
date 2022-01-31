@@ -4,7 +4,7 @@ description = "Gravity Bridge Tools. User tooling for the Althea Ethereum <=> Co
 edition = "2018"
 homepage = "https://gravitybridge.althea.net/"
 license = "Apache-2.0"
-name = "gbt"
+name = "nabt"
 repository = "https://github.com/althea-net/cosmos-gravity-bridge"
 version = "0.5.6"
 

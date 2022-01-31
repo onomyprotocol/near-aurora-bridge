@@ -45,9 +45,9 @@ pub async fn relayer(
         }
         if k.is_none() {
             error!("You must specify an Ethereum key!");
-            error!("To generate, register, and store a key use `gbt keys register-orchestrator-address`");
-            error!("Store an already registered key using 'gbt keys set-ethereum-key`");
-            error!("To run from the command line, with no key storage use 'gbt orchestrator --ethereum-key your key' ");
+            error!("To generate, register, and store a key use `nabt keys register-orchestrator-address`");
+            error!("Store an already registered key using 'nabt keys set-ethereum-key`");
+            error!("To run from the command line, with no key storage use 'nabt orchestrator --ethereum-key your key' ");
             return Err(GravityError::UnrecoverableError(
                 "Ethereum key not specified".into(),
             ));
